@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Repayment Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: #2c3e50;
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        header p {
+            color: #7f8c8d;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 1000px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panel Styles */
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .panel h2 {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .input-with-prefix {
+            position: relative;
+        }
+
+        .input-with-prefix span {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+
+        .input-with-prefix input {
+            padding-left: 28px;
+        }
+
+        .input-with-suffix {
+            position: relative;
+        }
+
+        .input-with-suffix span {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+        }
+
+        .input-with-suffix input {
+            padding-right: 35px;
+        }
+
+        /* Checkbox Toggle */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .toggle-group label {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+
+        /* Lump Sum Section */
+        .lump-sum-list {
+            margin-bottom: 10px;
+        }
+
+        .lump-sum-item {
+            display: grid;
+            grid-template-columns: 80px 1fr 36px;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .lump-sum-item input {
+            padding: 8px 10px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .lump-sum-item input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn-remove {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.2s;
+        }
+
+        .btn-remove:hover {
+            background: #c0392b;
+        }
+
+        .btn-add {
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-add:hover {
+            background: #219a52;
+        }
+
+        /* Summary Section */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .summary-item.highlight {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+        }
+
+        .summary-item.highlight.negative {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+
+        .summary-item label {
+            display: block;
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            margin-bottom: 3px;
+        }
+
+        .summary-item .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .summary-item .value.positive {
+            color: #27ae60;
+        }
+
+        .summary-item .sub-value {
+            font-size: 0.8rem;
+            color: #27ae60;
+        }
+
+        /* Charts Section */
+        .charts-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 800px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chart-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .chart-panel h3 {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 280px;
+        }
+
+        /* Summary Cards Row */
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .summary-card label {
+            display: block;
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+
+        .summary-card .value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .summary-card .value.savings {
+            color: #27ae60;
+        }
+
+        .summary-card .detail {
+            font-size: 0.8rem;
+            color: #95a5a6;
+            margin-top: 3px;
+        }
+
+        .comparison-note {
+            font-size: 0.75rem;
+            color: #95a5a6;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* Amortization Table */
+        .table-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-top: 20px;
+        }
+
+        .table-panel h3 {
+            font-size: 1rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .table-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .table-controls label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .table-controls select {
+            padding: 8px 12px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .table-controls select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .table-wrapper {
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ecf0f1;
+            border-radius: 8px;
+        }
+
+        .amortization-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .amortization-table thead {
+            position: sticky;
+            top: 0;
+            background: #2c3e50;
+            color: white;
+        }
+
+        .amortization-table th {
+            padding: 12px 10px;
+            text-align: right;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .amortization-table th:first-child,
+        .amortization-table th:nth-child(2) {
+            text-align: left;
+        }
+
+        .amortization-table td {
+            padding: 10px;
+            text-align: right;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .amortization-table td:first-child,
+        .amortization-table td:nth-child(2) {
+            text-align: left;
+        }
+
+        .amortization-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .amortization-table tbody tr.year-start {
+            background: #e8f4f8;
+            font-weight: 600;
+        }
+
+        .amortization-table tbody tr.has-lump-sum {
+            background: #fff3e0;
+        }
+
+        .amortization-table .extra {
+            color: #27ae60;
+        }
+
+        .amortization-table .lump-sum {
+            color: #e67e22;
+            font-weight: 600;
+        }
+
+        .table-summary {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .table-summary-item {
+            font-size: 0.85rem;
+        }
+
+        .table-summary-item span {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mortgage Repayment Calculator</h1>
+            <p>Visualise your mortgage and see the impact of overpayments</p>
+        </header>
+
+        <div class="main-layout">
+            <!-- Input Panel -->
+            <div class="inputs-column">
+                <div class="panel">
+                    <h2>Mortgage Details</h2>
+
+                    <div class="form-group">
+                        <label>Principal Amount</label>
+                        <div class="input-with-prefix">
+                            <span>&euro;</span>
+                            <input type="number" id="principal" value="196687" min="1000" step="1000">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Annual Interest Rate</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="rate" value="2.85" min="0.1" max="20" step="0.05">
+                            <span>%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loan Term</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="term" value="23" min="1" max="40" step="1">
+                            <span>years</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Start Year</label>
+                        <input type="number" id="startYear" value="2025" min="2000" max="2100" step="1">
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <h2>Overpayments</h2>
+
+                    <div class="toggle-group">
+                        <input type="checkbox" id="enableOverpayment">
+                        <label for="enableOverpayment">Enable monthly overpayment</label>
+                    </div>
+
+                    <div class="form-group" id="overpaymentGroup" style="display: none;">
+                        <label>Extra Monthly Payment</label>
+                        <div class="input-with-prefix">
+                            <span>&euro;</span>
+                            <input type="number" id="overpayment" value="100" min="0" step="50">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <h2>Lump Sum Payments</h2>
+
+                    <div class="lump-sum-list" id="lumpSumList">
+                        <!-- Lump sums will be added here -->
+                    </div>
+
+                    <button class="btn-add" id="addLumpSum">+ Add Lump Sum</button>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <h2>Summary Comparison</h2>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <label>Standard Term</label>
+                            <div class="value" id="standardTerm">-</div>
+                        </div>
+                        <div class="summary-item highlight">
+                            <label>With Overpayments</label>
+                            <div class="value" id="newTerm">-</div>
+                            <div class="sub-value" id="timeSaved"></div>
+                        </div>
+                        <div class="summary-item">
+                            <label>Standard Interest</label>
+                            <div class="value" id="standardInterest">-</div>
+                        </div>
+                        <div class="summary-item highlight">
+                            <label>Interest Saved</label>
+                            <div class="value positive" id="interestSaved">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Column -->
+            <div class="charts-container">
+                <!-- Summary Cards -->
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <label>Monthly Payment</label>
+                        <div class="value" id="monthlyPayment">&euro;0</div>
+                        <div class="detail" id="monthlyDetail">Standard payment</div>
+                    </div>
+                    <div class="summary-card">
+                        <label>Total Interest</label>
+                        <div class="value" id="totalInterest">&euro;0</div>
+                        <div class="detail" id="interestDetail">Over full term</div>
+                    </div>
+                    <div class="summary-card">
+                        <label>Total Cost</label>
+                        <div class="value" id="totalCost">&euro;0</div>
+                        <div class="detail" id="costDetail">Principal + Interest</div>
+                    </div>
+                    <div class="summary-card">
+                        <label>Completion Year</label>
+                        <div class="value" id="completionYear">-</div>
+                        <div class="detail" id="completionDetail">Mortgage paid off</div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="chart-panel">
+                        <h3>Remaining Balance Over Time</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="balanceChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-panel">
+                        <h3>Monthly Payment Breakdown</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="paymentChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-panel">
+                        <h3>Cumulative Payments Over Time</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="cumulativeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-panel">
+                        <h3>Total Cost Breakdown</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <p class="comparison-note">Blue line shows standard repayment. Green line shows repayment with overpayments.</p>
+
+                <!-- Amortization Table -->
+                <div class="table-panel">
+                    <h3>Monthly Amortization Schedule</h3>
+                    <div class="table-controls">
+                        <label>View:</label>
+                        <select id="tableView">
+                            <option value="with-overpayments">With Overpayments</option>
+                            <option value="standard">Standard Schedule</option>
+                        </select>
+                        <label>Show:</label>
+                        <select id="tableFilter">
+                            <option value="all">All Months</option>
+                            <option value="yearly">Yearly Summary</option>
+                        </select>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="amortization-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Payment</th>
+                                    <th>Principal</th>
+                                    <th>Interest</th>
+                                    <th>Extra</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="amortizationBody">
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-summary" id="tableSummary">
+                        <!-- Summary will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chart instances
+        let balanceChart, paymentChart, cumulativeChart, pieChart;
+
+        // DOM Elements
+        const principalInput = document.getElementById('principal');
+        const rateInput = document.getElementById('rate');
+        const termInput = document.getElementById('term');
+        const startYearInput = document.getElementById('startYear');
+        const enableOverpaymentCheckbox = document.getElementById('enableOverpayment');
+        const overpaymentInput = document.getElementById('overpayment');
+        const overpaymentGroup = document.getElementById('overpaymentGroup');
+        const lumpSumList = document.getElementById('lumpSumList');
+        const addLumpSumBtn = document.getElementById('addLumpSum');
+
+        // Lump sum storage
+        let lumpSums = [];
+
+        // Schedule data storage for table
+        let standardSchedule = [];
+        let overpaymentSchedule = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+            setupEventListeners();
+            calculate();
+        });
+
+        function setupEventListeners() {
+            // Input changes
+            [principalInput, rateInput, termInput, startYearInput, overpaymentInput].forEach(input => {
+                input.addEventListener('input', debounce(calculate, 300));
+            });
+
+            // Overpayment toggle
+            enableOverpaymentCheckbox.addEventListener('change', () => {
+                overpaymentGroup.style.display = enableOverpaymentCheckbox.checked ? 'block' : 'none';
+                calculate();
+            });
+
+            // Add lump sum
+            addLumpSumBtn.addEventListener('click', addLumpSum);
+
+            // Table controls
+            document.getElementById('tableView').addEventListener('change', updateTable);
+            document.getElementById('tableFilter').addEventListener('change', updateTable);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function addLumpSum() {
+            const startYear = parseInt(startYearInput.value) || 2025;
+            const term = parseInt(termInput.value) || 23;
+            const id = Date.now();
+
+            lumpSums.push({ id, year: startYear + 5, amount: 10000 });
+            renderLumpSums();
+            calculate();
+        }
+
+        function removeLumpSum(id) {
+            lumpSums = lumpSums.filter(ls => ls.id !== id);
+            renderLumpSums();
+            calculate();
+        }
+
+        function renderLumpSums() {
+            lumpSumList.innerHTML = lumpSums.map(ls => `
+                <div class="lump-sum-item">
+                    <input type="number" value="${ls.year}" min="2000" max="2100"
+                           onchange="updateLumpSum(${ls.id}, 'year', this.value)">
+                    <input type="number" value="${ls.amount}" min="100" step="100" placeholder="Amount"
+                           onchange="updateLumpSum(${ls.id}, 'amount', this.value)">
+                    <button class="btn-remove" onclick="removeLumpSum(${ls.id})">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function updateLumpSum(id, field, value) {
+            const ls = lumpSums.find(l => l.id === id);
+            if (ls) {
+                ls[field] = parseFloat(value);
+                calculate();
+            }
+        }
+
+        // Make functions available globally for inline handlers
+        window.removeLumpSum = removeLumpSum;
+        window.updateLumpSum = updateLumpSum;
+
+        function calculateAmortization(principal, monthlyRate, totalPayments, monthlyOverpayment = 0, lumpSumPayments = []) {
+            const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
+                                   (Math.pow(1 + monthlyRate, totalPayments) - 1);
+
+            let balance = principal;
+            const balances = [balance];
+            const principalPayments = [];
+            const interestPayments = [];
+            const cumulativePrincipal = [0];
+            const cumulativeInterest = [0];
+            const schedule = []; // Detailed schedule for table
+
+            let month = 0;
+            const startYear = parseInt(startYearInput.value) || 2025;
+
+            // Sort lump sums by year
+            const sortedLumpSums = [...lumpSumPayments].sort((a, b) => a.year - b.year);
+
+            while (balance > 0.01 && month < totalPayments * 2) { // Safety limit
+                month++;
+                const currentYear = startYear + Math.floor((month - 1) / 12);
+                const currentMonth = ((month - 1) % 12) + 1;
+
+                // Check for lump sum payment this month
+                let lumpSumThisMonth = 0;
+                sortedLumpSums.forEach(ls => {
+                    const lsMonth = (ls.year - startYear) * 12 + 1;
+                    if (Math.floor(lsMonth) === month) {
+                        lumpSumThisMonth += ls.amount;
+                    }
+                });
+
+                const interest = balance * monthlyRate;
+                const basePrincipal = monthlyPayment - interest;
+                let totalPrincipalPaid = basePrincipal + monthlyOverpayment + lumpSumThisMonth;
+
+                // Don't overpay
+                if (totalPrincipalPaid > balance) {
+                    totalPrincipalPaid = balance;
+                }
+
+                const totalPaymentThisMonth = interest + totalPrincipalPaid;
+
+                balance -= totalPrincipalPaid;
+                if (balance < 0) balance = 0;
+
+                // Store schedule entry
+                schedule.push({
+                    month: month,
+                    year: currentYear,
+                    monthNum: currentMonth,
+                    date: `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
+                    payment: monthlyPayment,
+                    principal: basePrincipal,
+                    interest: interest,
+                    extra: monthlyOverpayment,
+                    lumpSum: lumpSumThisMonth,
+                    totalPayment: totalPaymentThisMonth,
+                    balance: balance
+                });
+
+                balances.push(balance);
+                principalPayments.push(totalPrincipalPaid - lumpSumThisMonth); // Regular principal only for chart
+                interestPayments.push(interest);
+                cumulativePrincipal.push(cumulativePrincipal[cumulativePrincipal.length - 1] + totalPrincipalPaid);
+                cumulativeInterest.push(cumulativeInterest[cumulativeInterest.length - 1] + interest);
+
+                if (balance <= 0) break;
+            }
+
+            return {
+                monthlyPayment,
+                balances,
+                principalPayments,
+                interestPayments,
+                cumulativePrincipal,
+                cumulativeInterest,
+                totalInterest: cumulativeInterest[cumulativeInterest.length - 1],
+                totalMonths: month,
+                schedule: schedule
+            };
+        }
+
+        function calculate() {
+            const principal = parseFloat(principalInput.value) || 196687;
+            const annualRate = (parseFloat(rateInput.value) || 2.85) / 100;
+            const termYears = parseInt(termInput.value) || 23;
+            const startYear = parseInt(startYearInput.value) || 2025;
+            const monthlyRate = annualRate / 12;
+            const totalPayments = termYears * 12;
+
+            const overpaymentEnabled = enableOverpaymentCheckbox.checked;
+            const monthlyOverpayment = overpaymentEnabled ? (parseFloat(overpaymentInput.value) || 0) : 0;
+
+            // Calculate standard amortization
+            const standard = calculateAmortization(principal, monthlyRate, totalPayments, 0, []);
+
+            // Calculate with overpayments and lump sums
+            const withOverpayments = calculateAmortization(principal, monthlyRate, totalPayments, monthlyOverpayment, lumpSums);
+
+            // Store schedules for table
+            standardSchedule = standard.schedule;
+            overpaymentSchedule = withOverpayments.schedule;
+
+            // Update summary cards
+            document.getElementById('monthlyPayment').textContent = formatCurrency(standard.monthlyPayment);
+            if (overpaymentEnabled && monthlyOverpayment > 0) {
+                document.getElementById('monthlyDetail').textContent = `+€${monthlyOverpayment.toFixed(0)} overpayment`;
+            } else {
+                document.getElementById('monthlyDetail').textContent = 'Standard payment';
+            }
+
+            const displayInterest = (overpaymentEnabled || lumpSums.length > 0) ? withOverpayments.totalInterest : standard.totalInterest;
+            const displayTotalCost = principal + displayInterest;
+            const displayMonths = (overpaymentEnabled || lumpSums.length > 0) ? withOverpayments.totalMonths : standard.totalMonths;
+
+            document.getElementById('totalInterest').textContent = formatCurrency(displayInterest);
+            document.getElementById('totalCost').textContent = formatCurrency(displayTotalCost);
+
+            const completionYear = startYear + displayMonths / 12;
+            document.getElementById('completionYear').textContent = Math.ceil(completionYear);
+
+            // Update comparison panel
+            document.getElementById('standardTerm').textContent = `${termYears} years`;
+            document.getElementById('standardInterest').textContent = formatCurrency(standard.totalInterest);
+
+            if (overpaymentEnabled || lumpSums.length > 0) {
+                const newTermYears = withOverpayments.totalMonths / 12;
+                const yearsSaved = termYears - newTermYears;
+                const interestSaved = standard.totalInterest - withOverpayments.totalInterest;
+
+                document.getElementById('newTerm').textContent = `${newTermYears.toFixed(1)} years`;
+                document.getElementById('timeSaved').textContent = yearsSaved > 0 ? `${yearsSaved.toFixed(1)} years saved` : '';
+                document.getElementById('interestSaved').textContent = formatCurrency(interestSaved);
+                document.getElementById('completionDetail').textContent = `${(termYears - newTermYears).toFixed(1)} years early`;
+            } else {
+                document.getElementById('newTerm').textContent = '-';
+                document.getElementById('timeSaved').textContent = '';
+                document.getElementById('interestSaved').textContent = '-';
+                document.getElementById('completionDetail').textContent = 'Mortgage paid off';
+            }
+
+            // Update charts
+            updateCharts(standard, withOverpayments, startYear, termYears, principal, overpaymentEnabled || lumpSums.length > 0);
+
+            // Update table
+            updateTable();
+        }
+
+        function formatCurrency(value) {
+            return '€' + value.toLocaleString('en-IE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function formatCurrencyDecimal(value) {
+            return '€' + value.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        function updateTable() {
+            const viewType = document.getElementById('tableView').value;
+            const filterType = document.getElementById('tableFilter').value;
+
+            const schedule = viewType === 'standard' ? standardSchedule : overpaymentSchedule;
+            const tbody = document.getElementById('amortizationBody');
+            const summaryDiv = document.getElementById('tableSummary');
+
+            if (!schedule || schedule.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">No data available</td></tr>';
+                summaryDiv.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            let totalPayments = 0;
+            let totalPrincipal = 0;
+            let totalInterest = 0;
+            let totalExtra = 0;
+            let totalLumpSum = 0;
+
+            if (filterType === 'yearly') {
+                // Group by year
+                const yearlyData = {};
+                schedule.forEach(row => {
+                    if (!yearlyData[row.year]) {
+                        yearlyData[row.year] = {
+                            year: row.year,
+                            payments: 0,
+                            principal: 0,
+                            interest: 0,
+                            extra: 0,
+                            lumpSum: 0,
+                            endBalance: 0,
+                            months: 0
+                        };
+                    }
+                    yearlyData[row.year].payments += row.totalPayment;
+                    yearlyData[row.year].principal += row.principal;
+                    yearlyData[row.year].interest += row.interest;
+                    yearlyData[row.year].extra += row.extra;
+                    yearlyData[row.year].lumpSum += row.lumpSum;
+                    yearlyData[row.year].endBalance = row.balance;
+                    yearlyData[row.year].months++;
+                });
+
+                Object.values(yearlyData).forEach(year => {
+                    const hasLumpSum = year.lumpSum > 0;
+                    html += `<tr class="${hasLumpSum ? 'has-lump-sum' : ''}">
+                        <td>${year.months}</td>
+                        <td><strong>${year.year}</strong></td>
+                        <td>${formatCurrencyDecimal(year.payments)}</td>
+                        <td>${formatCurrencyDecimal(year.principal)}</td>
+                        <td>${formatCurrencyDecimal(year.interest)}</td>
+                        <td class="extra">${year.extra > 0 || year.lumpSum > 0 ? formatCurrencyDecimal(year.extra + year.lumpSum) : '-'}</td>
+                        <td>${formatCurrencyDecimal(year.endBalance)}</td>
+                    </tr>`;
+
+                    totalPayments += year.payments;
+                    totalPrincipal += year.principal;
+                    totalInterest += year.interest;
+                    totalExtra += year.extra;
+                    totalLumpSum += year.lumpSum;
+                });
+            } else {
+                // Show all months
+                schedule.forEach(row => {
+                    const isYearStart = row.monthNum === 1;
+                    const hasLumpSum = row.lumpSum > 0;
+                    const extraAmount = row.extra + row.lumpSum;
+
+                    html += `<tr class="${isYearStart ? 'year-start' : ''} ${hasLumpSum ? 'has-lump-sum' : ''}">
+                        <td>${row.month}</td>
+                        <td>${monthNames[row.monthNum - 1]} ${row.year}</td>
+                        <td>${formatCurrencyDecimal(row.totalPayment)}</td>
+                        <td>${formatCurrencyDecimal(row.principal)}</td>
+                        <td>${formatCurrencyDecimal(row.interest)}</td>
+                        <td class="${row.lumpSum > 0 ? 'lump-sum' : 'extra'}">${extraAmount > 0 ? formatCurrencyDecimal(extraAmount) : '-'}</td>
+                        <td>${formatCurrencyDecimal(row.balance)}</td>
+                    </tr>`;
+
+                    totalPayments += row.totalPayment;
+                    totalPrincipal += row.principal;
+                    totalInterest += row.interest;
+                    totalExtra += row.extra;
+                    totalLumpSum += row.lumpSum;
+                });
+            }
+
+            tbody.innerHTML = html;
+
+            // Update summary
+            const totalExtraPayments = totalExtra + totalLumpSum;
+            summaryDiv.innerHTML = `
+                <div class="table-summary-item">Total Payments: <span>${formatCurrency(totalPayments)}</span></div>
+                <div class="table-summary-item">Total Principal: <span>${formatCurrency(totalPrincipal + totalExtra + totalLumpSum)}</span></div>
+                <div class="table-summary-item">Total Interest: <span>${formatCurrency(totalInterest)}</span></div>
+                ${totalExtraPayments > 0 ? `<div class="table-summary-item">Total Extra/Lump Sum: <span style="color:#27ae60">${formatCurrency(totalExtraPayments)}</span></div>` : ''}
+                <div class="table-summary-item">Payments: <span>${schedule.length} months</span></div>
+            `;
+        }
+
+        function initCharts() {
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { boxWidth: 12, padding: 10 }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: {
+                            callback: value => '€' + (value / 1000).toFixed(0) + 'k'
+                        }
+                    }
+                }
+            };
+
+            // Balance Chart
+            balanceChart = new Chart(document.getElementById('balanceChart'), {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    ...chartOptions,
+                    plugins: {
+                        ...chartOptions.plugins,
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.dataset.label + ': €' + ctx.parsed.y.toLocaleString('en-IE', {maximumFractionDigits: 0})
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Payment Breakdown Chart
+            paymentChart = new Chart(document.getElementById('paymentChart'), {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        ...chartOptions.scales,
+                        y: {
+                            stacked: true,
+                            ticks: {
+                                callback: value => '€' + value.toFixed(0)
+                            }
+                        },
+                        x: {
+                            ticks: { maxTicksLimit: 10 }
+                        }
+                    }
+                }
+            });
+
+            // Cumulative Chart
+            cumulativeChart = new Chart(document.getElementById('cumulativeChart'), {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        ...chartOptions.scales,
+                        y: {
+                            stacked: true,
+                            ticks: {
+                                callback: value => '€' + (value / 1000).toFixed(0) + 'k'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Pie Chart
+            pieChart = new Chart(document.getElementById('pieChart'), {
+                type: 'pie',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.label + ': €' + ctx.parsed.toLocaleString('en-IE', {maximumFractionDigits: 0})
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCharts(standard, withOverpayments, startYear, termYears, principal, hasOverpayments) {
+            const endYear = startYear + termYears;
+
+            // Generate year labels for standard
+            const standardLabels = [];
+            for (let i = 0; i <= standard.balances.length - 1; i++) {
+                standardLabels.push((startYear + i / 12).toFixed(1));
+            }
+
+            // Generate year labels for overpayments
+            const overpaymentLabels = [];
+            for (let i = 0; i <= withOverpayments.balances.length - 1; i++) {
+                overpaymentLabels.push((startYear + i / 12).toFixed(1));
+            }
+
+            // Use longer array for x-axis
+            const maxLength = Math.max(standardLabels.length, overpaymentLabels.length);
+            const labels = [];
+            for (let i = 0; i < maxLength; i++) {
+                labels.push((startYear + i / 12).toFixed(1));
+            }
+
+            // Pad shorter arrays with nulls
+            const standardBalancesPadded = [...standard.balances];
+            const overpaymentBalancesPadded = [...withOverpayments.balances];
+            while (standardBalancesPadded.length < maxLength) standardBalancesPadded.push(null);
+            while (overpaymentBalancesPadded.length < maxLength) overpaymentBalancesPadded.push(null);
+
+            // Balance Chart
+            balanceChart.data.labels = labels.filter((_, i) => i % 12 === 0 || i === labels.length - 1);
+            const balanceDataStandard = standard.balances.filter((_, i) => i % 12 === 0 || i === standard.balances.length - 1);
+            const balanceDataOverpayment = withOverpayments.balances.filter((_, i) => i % 12 === 0 || i === withOverpayments.balances.length - 1);
+
+            // Align labels to actual years
+            const yearLabels = [];
+            for (let y = startYear; y <= endYear; y++) {
+                yearLabels.push(y.toString());
+            }
+
+            balanceChart.data.labels = yearLabels;
+
+            // Sample balance data at yearly intervals
+            const standardYearlyBalances = [];
+            const overpaymentYearlyBalances = [];
+            for (let y = 0; y <= termYears; y++) {
+                const monthIndex = y * 12;
+                standardYearlyBalances.push(standard.balances[monthIndex] !== undefined ? standard.balances[monthIndex] : null);
+                overpaymentYearlyBalances.push(withOverpayments.balances[monthIndex] !== undefined ? withOverpayments.balances[monthIndex] : null);
+            }
+
+            balanceChart.data.datasets = [
+                {
+                    label: 'Standard',
+                    data: standardYearlyBalances,
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    fill: true,
+                    tension: 0.1
+                }
+            ];
+
+            if (hasOverpayments) {
+                balanceChart.data.datasets.push({
+                    label: 'With Overpayments',
+                    data: overpaymentYearlyBalances,
+                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                    fill: true,
+                    tension: 0.1
+                });
+            }
+            balanceChart.update();
+
+            // Payment Breakdown Chart (using withOverpayments data if enabled, else standard)
+            const paymentData = hasOverpayments ? withOverpayments : standard;
+            const paymentYearLabels = [];
+            const principalYearly = [];
+            const interestYearly = [];
+
+            for (let y = 0; y < Math.ceil(paymentData.principalPayments.length / 12); y++) {
+                paymentYearLabels.push((startYear + y).toString());
+                // Average monthly values for the year
+                let pSum = 0, iSum = 0, count = 0;
+                for (let m = 0; m < 12; m++) {
+                    const idx = y * 12 + m;
+                    if (idx < paymentData.principalPayments.length) {
+                        pSum += paymentData.principalPayments[idx];
+                        iSum += paymentData.interestPayments[idx];
+                        count++;
+                    }
+                }
+                principalYearly.push(count > 0 ? pSum / count : 0);
+                interestYearly.push(count > 0 ? iSum / count : 0);
+            }
+
+            paymentChart.data.labels = paymentYearLabels;
+            paymentChart.data.datasets = [
+                {
+                    label: 'Interest',
+                    data: interestYearly,
+                    backgroundColor: 'rgba(231, 76, 60, 0.8)',
+                    borderColor: '#e74c3c',
+                    fill: true
+                },
+                {
+                    label: 'Principal',
+                    data: principalYearly,
+                    backgroundColor: 'rgba(39, 174, 96, 0.8)',
+                    borderColor: '#27ae60',
+                    fill: true
+                }
+            ];
+            paymentChart.update();
+
+            // Cumulative Chart
+            const cumulativeYearLabels = [];
+            const cumulativePrincipalYearly = [];
+            const cumulativeInterestYearly = [];
+
+            for (let y = 0; y <= Math.ceil(paymentData.cumulativePrincipal.length / 12); y++) {
+                const idx = Math.min(y * 12, paymentData.cumulativePrincipal.length - 1);
+                cumulativeYearLabels.push((startYear + y).toString());
+                cumulativePrincipalYearly.push(paymentData.cumulativePrincipal[idx]);
+                cumulativeInterestYearly.push(paymentData.cumulativeInterest[idx]);
+            }
+
+            cumulativeChart.data.labels = cumulativeYearLabels;
+            cumulativeChart.data.datasets = [
+                {
+                    label: 'Cumulative Interest',
+                    data: cumulativeInterestYearly,
+                    backgroundColor: 'rgba(231, 76, 60, 0.8)',
+                    borderColor: '#e74c3c',
+                    fill: true
+                },
+                {
+                    label: 'Cumulative Principal',
+                    data: cumulativePrincipalYearly,
+                    backgroundColor: 'rgba(39, 174, 96, 0.8)',
+                    borderColor: '#27ae60',
+                    fill: true
+                }
+            ];
+            cumulativeChart.update();
+
+            // Pie Chart
+            const displayInterest = hasOverpayments ? withOverpayments.totalInterest : standard.totalInterest;
+            pieChart.data.labels = ['Principal', 'Interest'];
+            pieChart.data.datasets = [{
+                data: [principal, displayInterest],
+                backgroundColor: ['#27ae60', '#e74c3c'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }];
+            pieChart.update();
+        }
+    </script>
+</body>
+</html>
