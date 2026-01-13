@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mortgage Repayment Calculator</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
     <style>
         * {
             margin: 0;
@@ -669,12 +670,55 @@
         let standardSchedule = [];
         let overpaymentSchedule = [];
 
+        // Default configuration (fallback if config.js not loaded)
+        const DEFAULT_CONFIG = {
+            principal: 300000,
+            annualRate: 3.1,
+            termYears: 30,
+            startYear: 2026,
+            enableOverpayment: false,
+            monthlyOverpayment: 100,
+            lumpSums: []
+        };
+
+        // Get config value with fallback
+        function getConfig(key) {
+            if (typeof CONFIG !== 'undefined' && CONFIG[key] !== undefined) {
+                return CONFIG[key];
+            }
+            return DEFAULT_CONFIG[key];
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            loadConfigValues();
             initCharts();
             setupEventListeners();
             calculate();
         });
+
+        function loadConfigValues() {
+            // Set input values from config
+            principalInput.value = getConfig('principal');
+            rateInput.value = getConfig('annualRate');
+            termInput.value = getConfig('termYears');
+            startYearInput.value = getConfig('startYear');
+            overpaymentInput.value = getConfig('monthlyOverpayment');
+
+            // Set overpayment toggle
+            const enableOverpayment = getConfig('enableOverpayment');
+            enableOverpaymentCheckbox.checked = enableOverpayment;
+            overpaymentGroup.style.display = enableOverpayment ? 'block' : 'none';
+
+            // Load default lump sums
+            const configLumpSums = getConfig('lumpSums');
+            if (configLumpSums && configLumpSums.length > 0) {
+                configLumpSums.forEach(ls => {
+                    lumpSums.push({ id: Date.now() + Math.random(), year: ls.year, amount: ls.amount });
+                });
+                renderLumpSums();
+            }
+        }
 
         function setupEventListeners() {
             // Input changes

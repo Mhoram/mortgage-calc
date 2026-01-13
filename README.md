@@ -35,8 +35,32 @@ No server or installation required - it runs entirely in your browser.
 |------|-------------|
 | `mortgage_calculator.html` | Main interactive web application |
 | `guide.html` | Usage guide and documentation |
+| `config.example.js` | Example configuration file (copy to `config.js`) |
 | `mortgage_visualisation.py` | Python script for generating static charts |
 | `mortgage_visualisation.png` | Sample output from Python script |
+
+## Configuration
+
+1. Copy the example config: `cp config.example.js config.js`
+2. Edit `config.js` with your default values:
+
+```javascript
+const CONFIG = {
+    principal: 300000,          // Loan amount in euros
+    annualRate: 3.1,           // Annual interest rate (%)
+    termYears: 30,              // Loan term in years
+    startYear: 2026,            // Year mortgage begins
+    enableOverpayment: false,   // Start with overpayments enabled
+    monthlyOverpayment: 100,    // Default extra monthly payment
+    lumpSums: [                 // Pre-configured lump sums (optional)
+        { year: 2030, amount: 10000 }
+    ]
+};
+```
+
+The calculator will use these values on load. If `config.js` is missing, it falls back to built-in defaults.
+
+Note: `config.js` is gitignored to keep your personal settings private.
 
 ## Usage Guide
 
