@@ -4,9 +4,9 @@
 const CONFIG = {
     // Mortgage defaults
     principal: 300000,          // Loan amount in euros
-    annualRate: 3.2,           // Annual interest rate (%)
+    annualRate: 3.1,           // Annual interest rate (%)
     termYears: 30,              // Loan term in years
-    startYear: 2025,            // Year mortgage begins
+    startYear: 2026,            // Year mortgage begins
 
     // Overpayment defaults
     enableOverpayment: false,   // Start with overpayments enabled
