@@ -46,10 +46,10 @@ No server or installation required - it runs entirely in your browser.
 
 ```javascript
 const CONFIG = {
-    principal: 196687,          // Loan amount in euros
-    annualRate: 2.85,           // Annual interest rate (%)
-    termYears: 23,              // Loan term in years
-    startYear: 2025,            // Year mortgage begins
+    principal: 300000,          // Loan amount in euros
+    annualRate: 3.1,           // Annual interest rate (%)
+    termYears: 30,              // Loan term in years
+    startYear: 2026,            // Year mortgage begins
     enableOverpayment: false,   // Start with overpayments enabled
     monthlyOverpayment: 100,    // Default extra monthly payment
     lumpSums: [                 // Pre-configured lump sums (optional)
