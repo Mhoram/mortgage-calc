@@ -14,5 +14,11 @@ const CONFIG = {
 
     // Default lump sums (optional)
     // Add entries like: { year: 2030, amount: 10000 }
-    lumpSums: []
+    lumpSums: [],
+
+    // Interest rate periods (optional)
+    // Define different rates for different time periods
+    // Add entries like: { startYear: 2026, endYear: 2030, rate: 3.0 }
+    // If empty, the default annual rate above will be used throughout
+    ratePeriods: []
 };

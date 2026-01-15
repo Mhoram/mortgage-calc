@@ -204,6 +204,41 @@
             background: #219a52;
         }
 
+        /* Rate Period Section */
+        .rate-period-list {
+            margin-bottom: 10px;
+        }
+
+        .rate-period-item {
+            display: grid;
+            grid-template-columns: 70px 70px 70px 36px;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        .rate-period-item input {
+            padding: 8px 6px;
+            border: 2px solid #ecf0f1;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .rate-period-item input:focus {
+            outline: none;
+            border-color: #9b59b6;
+        }
+
+        .rate-period-header {
+            display: grid;
+            grid-template-columns: 70px 70px 70px 36px;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+
         /* Summary Section */
         .summary-grid {
             display: grid;
@@ -529,6 +564,24 @@
                 </div>
 
                 <div class="panel" style="margin-top: 20px;">
+                    <h2>Interest Rate Periods</h2>
+                    <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Define different rates for different time periods. Leave empty to use the default rate above.</p>
+
+                    <div class="rate-period-header">
+                        <span>Start</span>
+                        <span>End</span>
+                        <span>Rate %</span>
+                        <span></span>
+                    </div>
+
+                    <div class="rate-period-list" id="ratePeriodList">
+                        <!-- Rate periods will be added here -->
+                    </div>
+
+                    <button class="btn-add" id="addRatePeriod">+ Add Rate Period</button>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
                     <h2>Summary Comparison</h2>
                     <div class="summary-grid">
                         <div class="summary-item">
@@ -662,9 +715,14 @@
         const overpaymentGroup = document.getElementById('overpaymentGroup');
         const lumpSumList = document.getElementById('lumpSumList');
         const addLumpSumBtn = document.getElementById('addLumpSum');
+        const ratePeriodList = document.getElementById('ratePeriodList');
+        const addRatePeriodBtn = document.getElementById('addRatePeriod');
 
         // Lump sum storage
         let lumpSums = [];
+
+        // Rate period storage
+        let ratePeriods = [];
 
         // Schedule data storage for table
         let standardSchedule = [];
@@ -678,7 +736,8 @@
             startYear: 2026,
             enableOverpayment: false,
             monthlyOverpayment: 100,
-            lumpSums: []
+            lumpSums: [],
+            ratePeriods: []
         };
 
         // Get config value with fallback
@@ -718,6 +777,15 @@
                 });
                 renderLumpSums();
             }
+
+            // Load default rate periods
+            const configRatePeriods = getConfig('ratePeriods');
+            if (configRatePeriods && configRatePeriods.length > 0) {
+                configRatePeriods.forEach(rp => {
+                    ratePeriods.push({ id: Date.now() + Math.random(), startYear: rp.startYear, endYear: rp.endYear, rate: rp.rate });
+                });
+                renderRatePeriods();
+            }
         }
 
         function setupEventListeners() {
@@ -734,6 +802,9 @@
 
             // Add lump sum
             addLumpSumBtn.addEventListener('click', addLumpSum);
+
+            // Add rate period
+            addRatePeriodBtn.addEventListener('click', addRatePeriod);
 
             // Table controls
             document.getElementById('tableView').addEventListener('change', updateTable);
@@ -792,9 +863,54 @@
         window.removeLumpSum = removeLumpSum;
         window.updateLumpSum = updateLumpSum;
 
-        function calculateAmortization(principal, monthlyRate, totalPayments, monthlyOverpayment = 0, lumpSumPayments = []) {
-            const monthlyPayment = principal * (monthlyRate * Math.pow(1 + monthlyRate, totalPayments)) /
-                                   (Math.pow(1 + monthlyRate, totalPayments) - 1);
+        // Rate period management
+        function addRatePeriod() {
+            const startYear = parseInt(startYearInput.value) || 2025;
+            const term = parseInt(termInput.value) || 30;
+            const defaultRate = parseFloat(rateInput.value) || 3.0;
+            const id = Date.now();
+
+            ratePeriods.push({ id, startYear: startYear, endYear: startYear + term, rate: defaultRate });
+            renderRatePeriods();
+            calculate();
+        }
+
+        function removeRatePeriod(id) {
+            ratePeriods = ratePeriods.filter(rp => rp.id !== id);
+            renderRatePeriods();
+            calculate();
+        }
+
+        function renderRatePeriods() {
+            ratePeriodList.innerHTML = ratePeriods.map(rp => `
+                <div class="rate-period-item">
+                    <input type="number" value="${rp.startYear}" min="2000" max="2100"
+                           onchange="updateRatePeriod(${rp.id}, 'startYear', this.value)">
+                    <input type="number" value="${rp.endYear}" min="2000" max="2100"
+                           onchange="updateRatePeriod(${rp.id}, 'endYear', this.value)">
+                    <input type="number" value="${rp.rate}" min="0" max="20" step="0.01"
+                           onchange="updateRatePeriod(${rp.id}, 'rate', this.value)">
+                    <button class="btn-remove" onclick="removeRatePeriod(${rp.id})">&times;</button>
+                </div>
+            `).join('');
+        }
+
+        function updateRatePeriod(id, field, value) {
+            const rp = ratePeriods.find(r => r.id === id);
+            if (rp) {
+                rp[field] = parseFloat(value);
+                calculate();
+            }
+        }
+
+        // Make rate period functions available globally
+        window.removeRatePeriod = removeRatePeriod;
+        window.updateRatePeriod = updateRatePeriod;
+
+        function calculateAmortization(principal, defaultMonthlyRate, totalPayments, monthlyOverpayment = 0, lumpSumPayments = [], ratePeriodsList = []) {
+            // Calculate base monthly payment using default rate
+            const monthlyPayment = principal * (defaultMonthlyRate * Math.pow(1 + defaultMonthlyRate, totalPayments)) /
+                                   (Math.pow(1 + defaultMonthlyRate, totalPayments) - 1);
 
             let balance = principal;
             const balances = [balance];
@@ -803,17 +919,38 @@
             const cumulativePrincipal = [0];
             const cumulativeInterest = [0];
             const schedule = []; // Detailed schedule for table
+            const rateChanges = []; // Track when rate changes for chart coloring
 
             let month = 0;
             const startYear = parseInt(startYearInput.value) || 2025;
 
-            // Sort lump sums by year
+            // Sort lump sums and rate periods by year
             const sortedLumpSums = [...lumpSumPayments].sort((a, b) => a.year - b.year);
+            const sortedRatePeriods = [...ratePeriodsList].sort((a, b) => a.startYear - b.startYear);
+
+            let lastRate = null;
 
             while (balance > 0.01 && month < totalPayments * 2) { // Safety limit
                 month++;
                 const currentYear = startYear + Math.floor((month - 1) / 12);
                 const currentMonth = ((month - 1) % 12) + 1;
+
+                // Find applicable rate for this year
+                let monthlyRate = defaultMonthlyRate;
+                let appliedPeriod = null;
+                for (let rp of sortedRatePeriods) {
+                    if (currentYear >= rp.startYear && currentYear <= rp.endYear) {
+                        monthlyRate = rp.rate / 100 / 12;
+                        appliedPeriod = rp;
+                        break;
+                    }
+                }
+
+                // Track rate changes for chart coloring
+                if (lastRate !== monthlyRate) {
+                    rateChanges.push({ month, year: currentYear, rate: monthlyRate * 12 * 100 });
+                    lastRate = monthlyRate;
+                }
 
                 // Check for lump sum payment this month
                 let lumpSumThisMonth = 0;
@@ -871,7 +1008,8 @@
                 cumulativeInterest,
                 totalInterest: cumulativeInterest[cumulativeInterest.length - 1],
                 totalMonths: month,
-                schedule: schedule
+                schedule: schedule,
+                rateChanges: rateChanges
             };
         }
 
@@ -886,11 +1024,11 @@
             const overpaymentEnabled = enableOverpaymentCheckbox.checked;
             const monthlyOverpayment = overpaymentEnabled ? (parseFloat(overpaymentInput.value) || 0) : 0;
 
-            // Calculate standard amortization
-            const standard = calculateAmortization(principal, monthlyRate, totalPayments, 0, []);
+            // Calculate standard amortization (no overpayments, no lump sums, but include rate periods)
+            const standard = calculateAmortization(principal, monthlyRate, totalPayments, 0, [], ratePeriods);
 
-            // Calculate with overpayments and lump sums
-            const withOverpayments = calculateAmortization(principal, monthlyRate, totalPayments, monthlyOverpayment, lumpSums);
+            // Calculate with overpayments, lump sums, and rate periods
+            const withOverpayments = calculateAmortization(principal, monthlyRate, totalPayments, monthlyOverpayment, lumpSums, ratePeriods);
 
             // Store schedules for table
             standardSchedule = standard.schedule;
@@ -934,8 +1072,8 @@
                 document.getElementById('completionDetail').textContent = 'Mortgage paid off';
             }
 
-            // Update charts
-            updateCharts(standard, withOverpayments, startYear, termYears, principal, overpaymentEnabled || lumpSums.length > 0);
+            // Update charts (pass rate changes for color-coded segments)
+            updateCharts(standard, withOverpayments, startYear, termYears, principal, overpaymentEnabled || lumpSums.length > 0, withOverpayments.rateChanges);
 
             // Update table
             updateTable();
@@ -1147,8 +1285,17 @@
             });
         }
 
-        function updateCharts(standard, withOverpayments, startYear, termYears, principal, hasOverpayments) {
+        function updateCharts(standard, withOverpayments, startYear, termYears, principal, hasOverpayments, rateChanges = []) {
             const endYear = startYear + termYears;
+
+            // Color palette for different rate periods
+            const rateColors = [
+                { border: '#3498db', bg: 'rgba(52, 152, 219, 0.1)' },   // Blue
+                { border: '#9b59b6', bg: 'rgba(155, 89, 182, 0.1)' },   // Purple
+                { border: '#e67e22', bg: 'rgba(230, 126, 34, 0.1)' },   // Orange
+                { border: '#1abc9c', bg: 'rgba(26, 188, 156, 0.1)' },   // Teal
+                { border: '#e74c3c', bg: 'rgba(231, 76, 60, 0.1)' }     // Red
+            ];
 
             // Generate year labels for standard
             const standardLabels = [];
@@ -1197,26 +1344,70 @@
                 overpaymentYearlyBalances.push(withOverpayments.balances[monthIndex] !== undefined ? withOverpayments.balances[monthIndex] : null);
             }
 
-            balanceChart.data.datasets = [
-                {
+            // Build segment color function for rate periods
+            const getSegmentColor = (ctx, colorIndex) => {
+                if (rateChanges.length <= 1) return undefined; // No rate changes, use default color
+                const yearIndex = ctx.p0DataIndex;
+                const currentYear = startYear + yearIndex;
+
+                // Find which rate period this year belongs to
+                for (let i = rateChanges.length - 1; i >= 0; i--) {
+                    if (currentYear >= rateChanges[i].year) {
+                        return rateColors[i % rateColors.length][colorIndex];
+                    }
+                }
+                return rateColors[0][colorIndex];
+            };
+
+            // Create datasets with segment coloring for rate periods
+            balanceChart.data.datasets = [];
+
+            if (rateChanges.length > 1 && ratePeriods.length > 0) {
+                // Use segment styling for color-coded rate periods
+                balanceChart.data.datasets.push({
+                    label: 'Balance',
+                    data: hasOverpayments ? overpaymentYearlyBalances : standardYearlyBalances,
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    fill: true,
+                    tension: 0.1,
+                    segment: {
+                        borderColor: ctx => getSegmentColor(ctx, 'border'),
+                        backgroundColor: ctx => getSegmentColor(ctx, 'bg')
+                    }
+                });
+
+                // Add legend entries for each rate period
+                ratePeriods.forEach((rp, idx) => {
+                    balanceChart.data.datasets.push({
+                        label: `${rp.rate}% (${rp.startYear}-${rp.endYear})`,
+                        data: [],
+                        borderColor: rateColors[idx % rateColors.length].border,
+                        backgroundColor: rateColors[idx % rateColors.length].bg,
+                        fill: false
+                    });
+                });
+            } else {
+                // Standard single-color display
+                balanceChart.data.datasets.push({
                     label: 'Standard',
                     data: standardYearlyBalances,
                     borderColor: '#3498db',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
                     fill: true,
                     tension: 0.1
-                }
-            ];
-
-            if (hasOverpayments) {
-                balanceChart.data.datasets.push({
-                    label: 'With Overpayments',
-                    data: overpaymentYearlyBalances,
-                    borderColor: '#27ae60',
-                    backgroundColor: 'rgba(39, 174, 96, 0.1)',
-                    fill: true,
-                    tension: 0.1
                 });
+
+                if (hasOverpayments) {
+                    balanceChart.data.datasets.push({
+                        label: 'With Overpayments',
+                        data: overpaymentYearlyBalances,
+                        borderColor: '#27ae60',
+                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        fill: true,
+                        tension: 0.1
+                    });
+                }
             }
             balanceChart.update();
 
