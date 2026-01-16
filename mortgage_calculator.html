@@ -190,7 +190,7 @@
         }
 
         .btn-add {
-            background: #27ae60;
+            background: #e67e22;
             color: white;
             border: none;
             border-radius: 8px;
@@ -202,7 +202,7 @@
         }
 
         .btn-add:hover {
-            background: #219a52;
+            background: #d35400;
         }
 
         /* Rate Period Section */
@@ -329,12 +329,12 @@
         }
 
         .summary-item .value.positive {
-            color: #27ae60;
+            color: #e67e22;
         }
 
         .summary-item .sub-value {
             font-size: 0.8rem;
-            color: #27ae60;
+            color: #e67e22;
         }
 
         /* Charts Section */
@@ -403,7 +403,7 @@
         }
 
         .summary-card .value.savings {
-            color: #27ae60;
+            color: #e67e22;
         }
 
         .summary-card .detail {
@@ -517,7 +517,7 @@
         }
 
         .amortization-table .extra {
-            color: #27ae60;
+            color: #e67e22;
         }
 
         .amortization-table .lump-sum {
@@ -1184,7 +1184,7 @@
 
             // Colors
             const primaryColor = [52, 152, 219];    // Blue
-            const secondaryColor = [39, 174, 96];   // Green
+            const secondaryColor = [230, 126, 34];   // Orange (colorblind-friendly)
             const darkGray = [44, 62, 80];
             const lightGray = [236, 240, 241];
 
@@ -1367,7 +1367,7 @@
 
             // Colors
             const primaryColor = [52, 152, 219];    // Blue
-            const secondaryColor = [39, 174, 96];   // Green
+            const secondaryColor = [230, 126, 34];   // Orange (colorblind-friendly)
             const darkGray = [44, 62, 80];
             const lightGray = [236, 240, 241];
             const white = [255, 255, 255];
@@ -1626,7 +1626,7 @@
                 <div class="table-summary-item">Total Payments: <span>${formatCurrency(totalPayments)}</span></div>
                 <div class="table-summary-item">Total Principal: <span>${formatCurrency(totalPrincipal + totalExtra + totalLumpSum)}</span></div>
                 <div class="table-summary-item">Total Interest: <span>${formatCurrency(totalInterest)}</span></div>
-                ${totalExtraPayments > 0 ? `<div class="table-summary-item">Total Extra/Lump Sum: <span style="color:#27ae60">${formatCurrency(totalExtraPayments)}</span></div>` : ''}
+                ${totalExtraPayments > 0 ? `<div class="table-summary-item">Total Extra/Lump Sum: <span style="color:#e67e22">${formatCurrency(totalExtraPayments)}</span></div>` : ''}
                 <div class="table-summary-item">Payments: <span>${schedule.length} months</span></div>
             `;
         }
@@ -1731,10 +1731,10 @@
             // Color palette for different rate periods
             const rateColors = [
                 { border: '#3498db', bg: 'rgba(52, 152, 219, 0.1)' },   // Blue
-                { border: '#9b59b6', bg: 'rgba(155, 89, 182, 0.1)' },   // Purple
                 { border: '#e67e22', bg: 'rgba(230, 126, 34, 0.1)' },   // Orange
-                { border: '#1abc9c', bg: 'rgba(26, 188, 156, 0.1)' },   // Teal
-                { border: '#e74c3c', bg: 'rgba(231, 76, 60, 0.1)' }     // Red
+                { border: '#8e44ad', bg: 'rgba(142, 68, 173, 0.1)' },   // Purple
+                { border: '#f39c12', bg: 'rgba(243, 156, 18, 0.1)' },   // Yellow
+                { border: '#2c3e50', bg: 'rgba(44, 62, 80, 0.1)' }      // Dark gray
             ];
 
             // Generate year labels for standard
@@ -1842,8 +1842,8 @@
                     balanceChart.data.datasets.push({
                         label: 'With Overpayments',
                         data: overpaymentYearlyBalances,
-                        borderColor: '#27ae60',
-                        backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                        borderColor: '#e67e22',
+                        backgroundColor: 'rgba(230, 126, 34, 0.1)',
                         fill: true,
                         tension: 0.1
                     });
@@ -1878,15 +1878,15 @@
                 {
                     label: 'Interest',
                     data: interestYearly,
-                    backgroundColor: 'rgba(231, 76, 60, 0.8)',
-                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(142, 68, 173, 0.8)',
+                    borderColor: '#8e44ad',
                     fill: true
                 },
                 {
                     label: 'Principal',
                     data: principalYearly,
-                    backgroundColor: 'rgba(39, 174, 96, 0.8)',
-                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(230, 126, 34, 0.8)',
+                    borderColor: '#e67e22',
                     fill: true
                 }
             ];
@@ -1909,15 +1909,15 @@
                 {
                     label: 'Cumulative Interest',
                     data: cumulativeInterestYearly,
-                    backgroundColor: 'rgba(231, 76, 60, 0.8)',
-                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(142, 68, 173, 0.8)',
+                    borderColor: '#8e44ad',
                     fill: true
                 },
                 {
                     label: 'Cumulative Principal',
                     data: cumulativePrincipalYearly,
-                    backgroundColor: 'rgba(39, 174, 96, 0.8)',
-                    borderColor: '#27ae60',
+                    backgroundColor: 'rgba(230, 126, 34, 0.8)',
+                    borderColor: '#e67e22',
                     fill: true
                 }
             ];
@@ -1928,7 +1928,7 @@
             pieChart.data.labels = ['Principal', 'Interest'];
             pieChart.data.datasets = [{
                 data: [principal, displayInterest],
-                backgroundColor: ['#27ae60', '#e74c3c'],
+                backgroundColor: ['#e67e22', '#8e44ad'],
                 borderWidth: 2,
                 borderColor: '#fff'
             }];
