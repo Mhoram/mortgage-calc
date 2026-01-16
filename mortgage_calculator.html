@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mortgage Repayment Calculator</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="config.js"></script>
     <style>
         * {
@@ -237,6 +238,57 @@
             font-size: 0.75rem;
             color: #7f8c8d;
             text-transform: uppercase;
+        }
+
+        /* Export Buttons */
+        .btn-export {
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-export:hover {
+            background: #2980b9;
+        }
+
+        .btn-export.secondary {
+            background: #95a5a6;
+        }
+
+        .btn-export.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .chart-header h3 {
+            margin: 0;
+        }
+
+        .export-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .export-all-container {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
         }
 
         /* Summary Section */
@@ -634,29 +686,44 @@
                 <!-- Charts Grid -->
                 <div class="charts-grid">
                     <div class="chart-panel">
-                        <h3>Remaining Balance Over Time</h3>
+                        <div class="chart-header">
+                            <h3>Remaining Balance Over Time</h3>
+                            <button class="btn-export" onclick="exportChartAsPNG('balanceChart', 'balance-chart')">PNG</button>
+                        </div>
                         <div class="chart-wrapper">
                             <canvas id="balanceChart"></canvas>
                         </div>
                     </div>
                     <div class="chart-panel">
-                        <h3>Monthly Payment Breakdown</h3>
+                        <div class="chart-header">
+                            <h3>Monthly Payment Breakdown</h3>
+                            <button class="btn-export" onclick="exportChartAsPNG('paymentChart', 'payment-breakdown')">PNG</button>
+                        </div>
                         <div class="chart-wrapper">
                             <canvas id="paymentChart"></canvas>
                         </div>
                     </div>
                     <div class="chart-panel">
-                        <h3>Cumulative Payments Over Time</h3>
+                        <div class="chart-header">
+                            <h3>Cumulative Payments Over Time</h3>
+                            <button class="btn-export" onclick="exportChartAsPNG('cumulativeChart', 'cumulative-payments')">PNG</button>
+                        </div>
                         <div class="chart-wrapper">
                             <canvas id="cumulativeChart"></canvas>
                         </div>
                     </div>
                     <div class="chart-panel">
-                        <h3>Total Cost Breakdown</h3>
+                        <div class="chart-header">
+                            <h3>Total Cost Breakdown</h3>
+                            <button class="btn-export" onclick="exportChartAsPNG('pieChart', 'cost-breakdown')">PNG</button>
+                        </div>
                         <div class="chart-wrapper">
                             <canvas id="pieChart"></canvas>
                         </div>
                     </div>
+                </div>
+                <div class="export-all-container">
+                    <button class="btn-export" onclick="exportAllChartsPDF()">Export All Charts as PDF</button>
                 </div>
                 <p class="comparison-note">Blue line shows standard repayment. Green line shows repayment with overpayments.</p>
 
@@ -674,6 +741,10 @@
                             <option value="all">All Months</option>
                             <option value="yearly">Yearly Summary</option>
                         </select>
+                        <div class="export-group">
+                            <button class="btn-export" onclick="exportScheduleCSV()">Export CSV</button>
+                            <button class="btn-export secondary" onclick="exportSchedulePDF()">Export PDF</button>
+                        </div>
                     </div>
                     <div class="table-wrapper">
                         <table class="amortization-table">
@@ -1085,6 +1156,375 @@
 
         function formatCurrencyDecimal(value) {
             return '€' + value.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        // Export Functions
+        function exportChartAsPNG(chartId, filename) {
+            const canvas = document.getElementById(chartId);
+            const link = document.createElement('a');
+            link.download = filename + '.png';
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
+
+        function exportAllChartsPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('landscape', 'mm', 'a4');
+
+            const charts = [
+                { id: 'balanceChart', title: 'Remaining Balance Over Time' },
+                { id: 'paymentChart', title: 'Monthly Payment Breakdown' },
+                { id: 'cumulativeChart', title: 'Cumulative Payments Over Time' },
+                { id: 'pieChart', title: 'Total Cost Breakdown' }
+            ];
+
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 15;
+
+            // Colors
+            const primaryColor = [52, 152, 219];    // Blue
+            const secondaryColor = [39, 174, 96];   // Green
+            const darkGray = [44, 62, 80];
+            const lightGray = [236, 240, 241];
+
+            // Helper to add header/footer to each page
+            const addPageBranding = (pageNum, totalPages) => {
+                // Header bar
+                pdf.setFillColor(...primaryColor);
+                pdf.rect(0, 0, pageWidth, 12, 'F');
+
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Mortgage Repayment Calculator', margin, 8);
+
+                const date = new Date().toLocaleDateString('en-IE');
+                pdf.setFont(undefined, 'normal');
+                pdf.text(date, pageWidth - margin, 8, { align: 'right' });
+
+                // Footer
+                pdf.setFillColor(...lightGray);
+                pdf.rect(0, pageHeight - 10, pageWidth, 10, 'F');
+
+                pdf.setTextColor(...darkGray);
+                pdf.setFontSize(8);
+                pdf.text(`Page ${pageNum} of ${totalPages}`, pageWidth / 2, pageHeight - 4, { align: 'center' });
+                pdf.text('Generated by Mortgage Calculator', margin, pageHeight - 4);
+            };
+
+            const totalPages = charts.length + 1; // charts + summary page
+
+            charts.forEach((chart, index) => {
+                if (index > 0) pdf.addPage();
+
+                addPageBranding(index + 1, totalPages);
+
+                const canvas = document.getElementById(chart.id);
+                const imgData = canvas.toDataURL('image/png', 1.0);
+
+                // Add title with color
+                pdf.setTextColor(...primaryColor);
+                pdf.setFontSize(18);
+                pdf.setFont(undefined, 'bold');
+                pdf.text(chart.title, pageWidth / 2, 22, { align: 'center' });
+
+                // Calculate image dimensions to fit page
+                const imgWidth = pageWidth - (margin * 2);
+                const imgHeight = (canvas.height / canvas.width) * imgWidth;
+
+                pdf.addImage(imgData, 'PNG', margin, 28, imgWidth, Math.min(imgHeight, pageHeight - 50));
+            });
+
+            // Add mortgage summary on last page
+            pdf.addPage();
+            addPageBranding(totalPages, totalPages);
+
+            // Summary title
+            pdf.setTextColor(...primaryColor);
+            pdf.setFontSize(22);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('Mortgage Summary', pageWidth / 2, 25, { align: 'center' });
+
+            const principal = document.getElementById('principal').value;
+            const rate = document.getElementById('rate').value;
+            const term = document.getElementById('term').value;
+            const monthlyPayment = document.getElementById('monthlyPayment').textContent;
+            const totalInterest = document.getElementById('totalInterest').textContent;
+            const totalCost = document.getElementById('totalCost').textContent;
+
+            // Summary cards
+            const cardY = 40;
+            const cardWidth = (pageWidth - margin * 3) / 2;
+            const cardHeight = 35;
+
+            const summaryData = [
+                { label: 'Loan Amount', value: `€${parseFloat(principal).toLocaleString()}`, x: margin, y: cardY },
+                { label: 'Interest Rate', value: `${rate}%`, x: margin + cardWidth + margin, y: cardY },
+                { label: 'Loan Term', value: `${term} years`, x: margin, y: cardY + cardHeight + 10 },
+                { label: 'Monthly Payment', value: monthlyPayment, x: margin + cardWidth + margin, y: cardY + cardHeight + 10 },
+                { label: 'Total Interest', value: totalInterest, x: margin, y: cardY + (cardHeight + 10) * 2 },
+                { label: 'Total Cost', value: totalCost, x: margin + cardWidth + margin, y: cardY + (cardHeight + 10) * 2 }
+            ];
+
+            summaryData.forEach((item, idx) => {
+                // Card background
+                const isHighlight = idx >= 4;
+                pdf.setFillColor(...(isHighlight ? secondaryColor : lightGray));
+                pdf.roundedRect(item.x, item.y, cardWidth, cardHeight, 3, 3, 'F');
+
+                // Label
+                pdf.setTextColor(isHighlight ? 255 : darkGray[0], isHighlight ? 255 : darkGray[1], isHighlight ? 255 : darkGray[2]);
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                pdf.text(item.label, item.x + 8, item.y + 12);
+
+                // Value
+                pdf.setFontSize(18);
+                pdf.setFont(undefined, 'bold');
+                pdf.text(item.value, item.x + 8, item.y + 26);
+            });
+
+            pdf.save('mortgage-charts.pdf');
+        }
+
+        function exportScheduleCSV() {
+            const viewType = document.getElementById('tableView').value;
+            const schedule = viewType === 'standard' ? standardSchedule : overpaymentSchedule;
+
+            if (!schedule || schedule.length === 0) {
+                alert('No schedule data to export');
+                return;
+            }
+
+            // CSV headers
+            const headers = ['Month', 'Year', 'Date', 'Payment', 'Principal', 'Interest', 'Extra', 'Lump Sum', 'Total Payment', 'Balance'];
+
+            // Build CSV content
+            let csv = headers.join(',') + '\n';
+
+            schedule.forEach(row => {
+                csv += [
+                    row.month,
+                    row.year,
+                    row.date,
+                    row.payment.toFixed(2),
+                    row.principal.toFixed(2),
+                    row.interest.toFixed(2),
+                    row.extra.toFixed(2),
+                    row.lumpSum.toFixed(2),
+                    row.totalPayment.toFixed(2),
+                    row.balance.toFixed(2)
+                ].join(',') + '\n';
+            });
+
+            // Calculate totals
+            const totals = schedule.reduce((acc, row) => {
+                acc.payment += row.payment;
+                acc.principal += row.principal;
+                acc.interest += row.interest;
+                acc.extra += row.extra;
+                acc.lumpSum += row.lumpSum;
+                acc.totalPayment += row.totalPayment;
+                return acc;
+            }, { payment: 0, principal: 0, interest: 0, extra: 0, lumpSum: 0, totalPayment: 0 });
+
+            csv += '\n';
+            csv += [
+                'TOTAL', '', '',
+                totals.payment.toFixed(2),
+                totals.principal.toFixed(2),
+                totals.interest.toFixed(2),
+                totals.extra.toFixed(2),
+                totals.lumpSum.toFixed(2),
+                totals.totalPayment.toFixed(2),
+                ''
+            ].join(',') + '\n';
+
+            // Trigger download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'amortization-schedule.csv';
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        function exportSchedulePDF() {
+            const { jsPDF } = window.jspdf;
+            const viewType = document.getElementById('tableView').value;
+            const schedule = viewType === 'standard' ? standardSchedule : overpaymentSchedule;
+
+            if (!schedule || schedule.length === 0) {
+                alert('No schedule data to export');
+                return;
+            }
+
+            const pdf = new jsPDF('portrait', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+
+            // Colors
+            const primaryColor = [52, 152, 219];    // Blue
+            const secondaryColor = [39, 174, 96];   // Green
+            const darkGray = [44, 62, 80];
+            const lightGray = [236, 240, 241];
+            const white = [255, 255, 255];
+            const lightBlue = [235, 245, 251];
+
+            const principal = document.getElementById('principal').value;
+            const rate = document.getElementById('rate').value;
+            const term = document.getElementById('term').value;
+
+            let pageNum = 1;
+
+            // Helper to add header/footer
+            const addPageBranding = () => {
+                // Header bar
+                pdf.setFillColor(...primaryColor);
+                pdf.rect(0, 0, pageWidth, 15, 'F');
+
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Mortgage Repayment Calculator', margin, 10);
+
+                pdf.setFontSize(9);
+                pdf.setFont(undefined, 'normal');
+                const date = new Date().toLocaleDateString('en-IE');
+                pdf.text(date, pageWidth - margin, 10, { align: 'right' });
+
+                // Footer
+                pdf.setFillColor(...lightGray);
+                pdf.rect(0, pageHeight - 12, pageWidth, 12, 'F');
+
+                pdf.setTextColor(...darkGray);
+                pdf.setFontSize(8);
+                pdf.text('Generated by Mortgage Calculator', margin, pageHeight - 5);
+                pdf.text(`Page ${pageNum}`, pageWidth - margin, pageHeight - 5, { align: 'right' });
+            };
+
+            // Add first page branding
+            addPageBranding();
+
+            // Title
+            pdf.setTextColor(...primaryColor);
+            pdf.setFontSize(18);
+            pdf.setFont(undefined, 'bold');
+            pdf.text('Amortization Schedule', pageWidth / 2, 25, { align: 'center' });
+
+            // Mortgage info bar
+            pdf.setFillColor(...lightBlue);
+            pdf.roundedRect(margin, 30, pageWidth - margin * 2, 12, 2, 2, 'F');
+
+            pdf.setTextColor(...darkGray);
+            pdf.setFontSize(10);
+            pdf.setFont(undefined, 'normal');
+            pdf.text(`Principal: €${parseFloat(principal).toLocaleString()}  |  Rate: ${rate}%  |  Term: ${term} years  |  Schedule: ${viewType === 'standard' ? 'Standard' : 'With Overpayments'}`, pageWidth / 2, 38, { align: 'center' });
+
+            // Table setup
+            const headers = ['#', 'Date', 'Payment', 'Principal', 'Interest', 'Extra', 'Balance'];
+            const colWidths = [15, 25, 28, 28, 28, 22, 34];
+            const tableWidth = colWidths.reduce((a, b) => a + b, 0);
+            const tableX = (pageWidth - tableWidth) / 2;
+
+            let y = 50;
+            const headerHeight = 8;
+            const rowHeight = 6;
+
+            // Draw table header
+            const drawTableHeader = () => {
+                pdf.setFillColor(...primaryColor);
+                pdf.rect(tableX, y, tableWidth, headerHeight, 'F');
+
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(8);
+                pdf.setFont(undefined, 'bold');
+
+                let x = tableX;
+                headers.forEach((header, i) => {
+                    pdf.text(header, x + colWidths[i] / 2, y + 5.5, { align: 'center' });
+                    x += colWidths[i];
+                });
+
+                y += headerHeight;
+            };
+
+            drawTableHeader();
+
+            // Draw rows
+            pdf.setFont(undefined, 'normal');
+            schedule.forEach((row, index) => {
+                if (y > pageHeight - 25) {
+                    pdf.addPage();
+                    pageNum++;
+                    addPageBranding();
+                    y = 22;
+                    drawTableHeader();
+                }
+
+                // Alternating row colors
+                if (index % 2 === 0) {
+                    pdf.setFillColor(...lightGray);
+                    pdf.rect(tableX, y, tableWidth, rowHeight, 'F');
+                }
+
+                // Highlight rows with lump sums
+                if (row.lumpSum > 0) {
+                    pdf.setFillColor(232, 245, 233);
+                    pdf.rect(tableX, y, tableWidth, rowHeight, 'F');
+                }
+
+                pdf.setTextColor(...darkGray);
+                pdf.setFontSize(7);
+
+                let x = tableX;
+                const rowData = [
+                    row.month.toString(),
+                    row.date,
+                    '€' + row.payment.toFixed(0),
+                    '€' + row.principal.toFixed(0),
+                    '€' + row.interest.toFixed(0),
+                    '€' + (row.extra + row.lumpSum).toFixed(0),
+                    '€' + row.balance.toFixed(0)
+                ];
+
+                rowData.forEach((cell, i) => {
+                    pdf.text(cell, x + colWidths[i] / 2, y + 4, { align: 'center' });
+                    x += colWidths[i];
+                });
+
+                y += rowHeight;
+            });
+
+            // Totals row
+            y += 2;
+            if (y > pageHeight - 30) {
+                pdf.addPage();
+                pageNum++;
+                addPageBranding();
+                y = 25;
+            }
+
+            const totals = schedule.reduce((acc, row) => {
+                acc.principal += row.principal;
+                acc.interest += row.interest;
+                acc.extra += row.extra + row.lumpSum;
+                acc.totalPayment += row.totalPayment;
+                return acc;
+            }, { principal: 0, interest: 0, extra: 0, totalPayment: 0 });
+
+            // Totals bar
+            pdf.setFillColor(...secondaryColor);
+            pdf.roundedRect(tableX, y, tableWidth, 10, 2, 2, 'F');
+
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(9);
+            pdf.setFont(undefined, 'bold');
+            pdf.text(`Total Paid: €${totals.totalPayment.toFixed(0)}  |  Principal: €${totals.principal.toFixed(0)}  |  Interest: €${totals.interest.toFixed(0)}  |  Extra: €${totals.extra.toFixed(0)}`, pageWidth / 2, y + 6.5, { align: 'center' });
+
+            pdf.save('amortization-schedule.pdf');
         }
 
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
