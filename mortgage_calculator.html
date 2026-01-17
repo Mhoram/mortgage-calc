@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mortgage Repayment Calculator</title>
+    <title>Just Another Mortgage Calculator</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="config.js"></script>
@@ -36,6 +36,15 @@
             color: #2c3e50;
             font-size: 2rem;
             margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
         }
 
         header p {
@@ -603,7 +612,29 @@
 <body>
     <div class="container">
         <header>
-            <h1>Mortgage Repayment Calculator</h1>
+            <h1>
+                <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- House outline -->
+                    <path d="M50 8 L90 40 L90 92 L10 92 L10 40 Z" fill="#3498db" stroke="#2c3e50" stroke-width="3"/>
+                    <!-- Roof -->
+                    <path d="M50 8 L95 45 L88 45 L50 15 L12 45 L5 45 Z" fill="#2c3e50"/>
+                    <!-- Door -->
+                    <rect x="40" y="60" width="20" height="32" rx="2" fill="#2c3e50"/>
+                    <!-- Window -->
+                    <rect x="58" y="48" width="18" height="14" rx="2" fill="#fff" opacity="0.9"/>
+                    <line x1="67" y1="48" x2="67" y2="62" stroke="#2c3e50" stroke-width="2"/>
+                    <line x1="58" y1="55" x2="76" y2="55" stroke="#2c3e50" stroke-width="2"/>
+                    <!-- Chart bars inside house -->
+                    <rect x="22" y="65" width="8" height="18" rx="1" fill="#e67e22"/>
+                    <rect x="22" y="52" width="8" height="31" rx="1" fill="#e67e22" opacity="0.6"/>
+                    <rect x="22" y="58" width="8" height="25" rx="1" fill="#e67e22" opacity="0.8"/>
+                    <!-- Percentage symbol -->
+                    <circle cx="72" cy="28" r="6" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+                    <circle cx="84" cy="40" r="6" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+                    <line x1="84" y1="24" x2="72" y2="44" stroke="#e67e22" stroke-width="2.5"/>
+                </svg>
+                Just Another Mortgage Calculator
+            </h1>
             <p>Visualise your mortgage and see the impact of overpayments | <a href="guide.html" style="color: #3498db;">Usage Guide</a></p>
         </header>
 
