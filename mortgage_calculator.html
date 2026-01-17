@@ -1731,11 +1731,39 @@
                         legend: { position: 'bottom' },
                         tooltip: {
                             callbacks: {
-                                label: ctx => ctx.label + ': €' + ctx.parsed.toLocaleString('en-IE', {maximumFractionDigits: 0})
+                                label: ctx => {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((ctx.parsed / total) * 100).toFixed(1);
+                                    return ctx.label + ': €' + ctx.parsed.toLocaleString('en-IE', {maximumFractionDigits: 0}) + ' (' + percentage + '%)';
+                                }
                             }
                         }
                     }
-                }
+                },
+                plugins: [{
+                    id: 'percentageLabels',
+                    afterDraw: (chart) => {
+                        const ctx = chart.ctx;
+                        const dataset = chart.data.datasets[0];
+                        if (!dataset || !dataset.data || dataset.data.length === 0) return;
+
+                        const total = dataset.data.reduce((a, b) => a + b, 0);
+                        const meta = chart.getDatasetMeta(0);
+
+                        meta.data.forEach((arc, index) => {
+                            const percentage = ((dataset.data[index] / total) * 100).toFixed(1);
+                            const centerPoint = arc.tooltipPosition();
+
+                            ctx.save();
+                            ctx.fillStyle = '#fff';
+                            ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(percentage + '%', centerPoint.x, centerPoint.y);
+                            ctx.restore();
+                        });
+                    }
+                }]
             });
         }
 
