@@ -240,6 +240,61 @@
             text-transform: uppercase;
         }
 
+        /* Advanced Options Toggle */
+        .advanced-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            margin-top: 15px;
+            background: #f8f9fa;
+            border: 1px dashed #bdc3c7;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            width: 100%;
+        }
+
+        .advanced-toggle:hover {
+            background: #ecf0f1;
+            border-color: #3498db;
+            color: #3498db;
+        }
+
+        .advanced-toggle .icon {
+            transition: transform 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .advanced-toggle.expanded .icon {
+            transform: rotate(180deg);
+        }
+
+        .advanced-section {
+            display: none;
+        }
+
+        .advanced-section.visible {
+            display: block;
+        }
+
+        /* Feature Badges */
+        .new-badge {
+            display: inline-block;
+            background: #e67e22;
+            color: white;
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            vertical-align: middle;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
         /* Export Buttons */
         .btn-export {
             background: #3498db;
@@ -586,51 +641,60 @@
                         <label>Start Year</label>
                         <input type="number" id="startYear" value="2025" min="2000" max="2100" step="1">
                     </div>
+
+                    <!-- Advanced Options Toggle -->
+                    <button class="advanced-toggle" id="advancedToggle" onclick="toggleAdvancedOptions()">
+                        <span class="icon">▼</span>
+                        <span class="text">Show advanced options</span>
+                    </button>
                 </div>
 
-                <div class="panel" style="margin-top: 20px;">
-                    <h2>Overpayments</h2>
+                <!-- Advanced Section (hidden by default) -->
+                <div class="advanced-section" id="advancedSection">
+                    <div class="panel" style="margin-top: 20px;">
+                        <h2>Overpayments</h2>
 
-                    <div class="toggle-group">
-                        <input type="checkbox" id="enableOverpayment">
-                        <label for="enableOverpayment">Enable monthly overpayment</label>
-                    </div>
+                        <div class="toggle-group">
+                            <input type="checkbox" id="enableOverpayment">
+                            <label for="enableOverpayment">Enable monthly overpayment</label>
+                        </div>
 
-                    <div class="form-group" id="overpaymentGroup" style="display: none;">
-                        <label>Extra Monthly Payment</label>
-                        <div class="input-with-prefix">
-                            <span>&euro;</span>
-                            <input type="number" id="overpayment" value="100" min="0" step="50">
+                        <div class="form-group" id="overpaymentGroup" style="display: none;">
+                            <label>Extra Monthly Payment</label>
+                            <div class="input-with-prefix">
+                                <span>&euro;</span>
+                                <input type="number" id="overpayment" value="100" min="0" step="50">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="panel" style="margin-top: 20px;">
-                    <h2>Lump Sum Payments</h2>
+                    <div class="panel" style="margin-top: 20px;">
+                        <h2>Lump Sum Payments</h2>
 
-                    <div class="lump-sum-list" id="lumpSumList">
-                        <!-- Lump sums will be added here -->
+                        <div class="lump-sum-list" id="lumpSumList">
+                            <!-- Lump sums will be added here -->
+                        </div>
+
+                        <button class="btn-add" id="addLumpSum">+ Add Lump Sum</button>
                     </div>
 
-                    <button class="btn-add" id="addLumpSum">+ Add Lump Sum</button>
-                </div>
+                    <div class="panel" style="margin-top: 20px;">
+                        <h2>Interest Rate Periods <span class="new-badge">New</span></h2>
+                        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Define different rates for different time periods. Leave empty to use the default rate above.</p>
 
-                <div class="panel" style="margin-top: 20px;">
-                    <h2>Interest Rate Periods</h2>
-                    <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Define different rates for different time periods. Leave empty to use the default rate above.</p>
+                        <div class="rate-period-header">
+                            <span>Start</span>
+                            <span>End</span>
+                            <span>Rate %</span>
+                            <span></span>
+                        </div>
 
-                    <div class="rate-period-header">
-                        <span>Start</span>
-                        <span>End</span>
-                        <span>Rate %</span>
-                        <span></span>
+                        <div class="rate-period-list" id="ratePeriodList">
+                            <!-- Rate periods will be added here -->
+                        </div>
+
+                        <button class="btn-add" id="addRatePeriod">+ Add Rate Period</button>
                     </div>
-
-                    <div class="rate-period-list" id="ratePeriodList">
-                        <!-- Rate periods will be added here -->
-                    </div>
-
-                    <button class="btn-add" id="addRatePeriod">+ Add Rate Period</button>
                 </div>
 
                 <div class="panel" style="margin-top: 20px;">
@@ -880,6 +944,15 @@
             // Table controls
             document.getElementById('tableView').addEventListener('change', updateTable);
             document.getElementById('tableFilter').addEventListener('change', updateTable);
+        }
+
+        // Toggle advanced options visibility
+        function toggleAdvancedOptions() {
+            const section = document.getElementById('advancedSection');
+            const toggle = document.getElementById('advancedToggle');
+            const isVisible = section.classList.toggle('visible');
+            toggle.classList.toggle('expanded', isVisible);
+            toggle.querySelector('.text').textContent = isVisible ? 'Hide advanced options' : 'Show advanced options';
         }
 
         function debounce(func, wait) {

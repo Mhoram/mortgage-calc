@@ -26,7 +26,7 @@
 
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         header h1 {
@@ -52,12 +52,78 @@
             text-decoration: underline;
         }
 
-        .section {
+        /* Tab Navigation */
+        .tab-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 0;
             background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin-bottom: 25px;
+            padding: 15px 15px 0 15px;
+            border-radius: 12px 12px 0 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            border: none;
+            background: #f0f2f5;
+            color: #7f8c8d;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            background: #e8eaed;
+            color: #2c3e50;
+        }
+
+        .tab-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        .tab-btn .badge {
+            display: inline-block;
+            background: #e67e22;
+            color: white;
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-left: 6px;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+
+        .tab-btn.active .badge {
+            background: white;
+            color: #3498db;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 0 0 12px 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
         }
 
         .section h2 {
@@ -97,13 +163,13 @@
         }
 
         .highlight-box.tip {
-            background: #e8f5e9;
-            border-left-color: #27ae60;
+            background: #fef5e7;
+            border-left-color: #e67e22;
         }
 
         .highlight-box.warning {
-            background: #fff3e0;
-            border-left-color: #e67e22;
+            background: #f5eef8;
+            border-left-color: #8e44ad;
         }
 
         .highlight-box strong {
@@ -118,7 +184,7 @@
             border-radius: 4px;
             font-family: 'Consolas', 'Monaco', monospace;
             font-size: 0.9em;
-            color: #e74c3c;
+            color: #8e44ad;
         }
 
         .feature-grid {
@@ -177,6 +243,24 @@
             margin-right: 8px;
         }
 
+        .new-badge {
+            display: inline-block;
+            background: #e67e22;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 8px;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+
+        .divider {
+            height: 1px;
+            background: #ecf0f1;
+            margin: 30px 0;
+        }
+
         footer {
             text-align: center;
             padding: 30px;
@@ -187,6 +271,22 @@
         footer a {
             color: #3498db;
             text-decoration: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .tab-nav {
+                padding: 10px 10px 0 10px;
+            }
+
+            .tab-btn {
+                padding: 10px 14px;
+                font-size: 0.85rem;
+            }
+
+            .tab-content {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -199,206 +299,368 @@
             <p>Learn how to use all features of the Mortgage Calculator</p>
         </header>
 
-        <div class="section">
-            <h2>Getting Started</h2>
-            <p>The Mortgage Calculator helps you visualise your mortgage repayments and understand how overpayments can reduce your total interest and loan term.</p>
-
-            <h3>Basic Setup</h3>
-            <ol>
-                <li>Enter your <strong>Principal Amount</strong> - the total amount you're borrowing</li>
-                <li>Set your <strong>Annual Interest Rate</strong> - as shown on your mortgage offer</li>
-                <li>Enter your <strong>Loan Term</strong> - the number of years for your mortgage</li>
-                <li>Set the <strong>Start Year</strong> - when your mortgage begins</li>
-            </ol>
-
-            <p>The calculator will immediately show your monthly payment, total interest, and visualisations.</p>
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="overview">Overview</button>
+            <button class="tab-btn" data-tab="payments">Payments</button>
+            <button class="tab-btn" data-tab="rates">Interest Rates <span class="badge">New</span></button>
+            <button class="tab-btn" data-tab="exports">Exports <span class="badge">New</span></button>
+            <button class="tab-btn" data-tab="tips">Tips</button>
         </div>
 
-        <div class="section">
-            <h2>Understanding the Charts</h2>
+        <!-- Overview Tab -->
+        <div class="tab-content active" id="overview">
+            <div class="section">
+                <h2>Getting Started</h2>
+                <p>The Mortgage Calculator helps you visualise your mortgage repayments and understand how overpayments, lump sums, and interest rate changes can affect your total interest and loan term.</p>
 
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <h4>Remaining Balance</h4>
-                    <p>Shows how your mortgage balance decreases over time. The blue line shows standard repayment; green shows with overpayments.</p>
-                </div>
-                <div class="feature-card">
-                    <h4>Payment Breakdown</h4>
-                    <p>Visualises how much of each payment goes to principal (green) vs interest (red). Early payments are mostly interest.</p>
-                </div>
-                <div class="feature-card">
-                    <h4>Cumulative Payments</h4>
-                    <p>Shows the total amount you've paid over time, split between principal repayment and interest.</p>
-                </div>
-                <div class="feature-card">
-                    <h4>Cost Breakdown</h4>
-                    <p>A pie chart showing the proportion of your total cost that goes to principal vs interest.</p>
+                <h3>Basic Setup</h3>
+                <ol>
+                    <li>Enter your <strong>Principal Amount</strong> - the total amount you're borrowing</li>
+                    <li>Set your <strong>Annual Interest Rate</strong> - as shown on your mortgage offer</li>
+                    <li>Enter your <strong>Loan Term</strong> - the number of years for your mortgage</li>
+                    <li>Set the <strong>Start Year</strong> - when your mortgage begins</li>
+                </ol>
+
+                <p>The calculator will immediately show your monthly payment, total interest, and visualisations.</p>
+
+                <div class="highlight-box tip">
+                    <strong>Simple Interface</strong>
+                    The calculator starts with just the basic inputs. Click <strong>"Show advanced options"</strong> to access overpayments, lump sums, and interest rate periods.
                 </div>
             </div>
 
-            <div class="highlight-box tip">
-                <strong>Tip</strong>
-                Hover over any chart to see exact values at that point in time.
+            <div class="divider"></div>
+
+            <div class="section">
+                <h2>Understanding the Charts</h2>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>Remaining Balance</h4>
+                        <p>Shows how your mortgage balance decreases over time. The blue line shows standard repayment; orange shows with overpayments.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Payment Breakdown</h4>
+                        <p>Visualises how much of each payment goes to principal (orange) vs interest (purple). Early payments are mostly interest.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Cumulative Payments</h4>
+                        <p>Shows the total amount you've paid over time, split between principal repayment and interest.</p>
+                    </div>
+                    <div class="feature-card">
+                        <h4>Cost Breakdown</h4>
+                        <p>A pie chart showing the proportion of your total cost that goes to principal vs interest.</p>
+                    </div>
+                </div>
+
+                <div class="highlight-box tip">
+                    <strong>Tip</strong>
+                    Hover over any chart to see exact values at that point in time.
+                </div>
+
+                <div class="highlight-box">
+                    <strong>Accessibility Note</strong>
+                    Charts use a colorblind-friendly palette: blue for standard values, orange for principal/positive indicators, and purple for interest/costs.
+                </div>
             </div>
         </div>
 
-        <div class="section">
-            <h2>Using Overpayments</h2>
-            <p>Regular overpayments can significantly reduce your mortgage term and total interest paid.</p>
-
-            <h3>How to Add Overpayments</h3>
-            <ol>
-                <li>Tick the <strong>"Enable monthly overpayment"</strong> checkbox</li>
-                <li>Enter the extra amount you want to pay each month</li>
-                <li>Watch the charts update to show the impact</li>
-            </ol>
-
-            <div class="highlight-box">
-                <strong>Example</strong>
-                On a &euro;200,000 mortgage at 3% over 25 years, paying an extra &euro;200/month could save you over &euro;25,000 in interest and reduce your term by 5+ years.
+        <!-- Payments Tab -->
+        <div class="tab-content" id="payments">
+            <div class="section">
+                <h2>Advanced Options</h2>
+                <p>Click the <strong>"Show advanced options"</strong> button below the basic inputs to reveal additional features:</p>
+                <ul>
+                    <li><strong>Overpayments</strong> - Add regular monthly overpayments</li>
+                    <li><strong>Lump Sum Payments</strong> - Schedule one-time extra payments</li>
+                    <li><strong>Interest Rate Periods</strong> - Model different rates over time</li>
+                </ul>
             </div>
 
-            <h3>What the Summary Shows</h3>
-            <table>
-                <tr>
-                    <th>Field</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td>Standard Term</td>
-                    <td>Your original mortgage length</td>
-                </tr>
-                <tr>
-                    <td>With Overpayments</td>
-                    <td>New term with overpayments applied</td>
-                </tr>
-                <tr>
-                    <td>Standard Interest</td>
-                    <td>Total interest without overpayments</td>
-                </tr>
-                <tr>
-                    <td>Interest Saved</td>
-                    <td>How much you save by overpaying</td>
-                </tr>
-            </table>
-        </div>
+            <div class="divider"></div>
 
-        <div class="section">
-            <h2>Lump Sum Payments</h2>
-            <p>Lump sum payments are one-time extra payments, such as a bonus, inheritance, or savings.</p>
+            <div class="section">
+                <h2>Using Overpayments</h2>
+                <p>Regular overpayments can significantly reduce your mortgage term and total interest paid.</p>
 
-            <h3>How to Add Lump Sums</h3>
-            <ol>
-                <li>Click the <strong>"+ Add Lump Sum"</strong> button</li>
-                <li>Enter the <strong>year</strong> when you'll make the payment</li>
-                <li>Enter the <strong>amount</strong> of the lump sum</li>
-                <li>Add multiple lump sums if needed</li>
-                <li>Click the <strong>&times;</strong> button to remove a lump sum</li>
-            </ol>
+                <h3>How to Add Overpayments</h3>
+                <ol>
+                    <li>Click <strong>"Show advanced options"</strong> to reveal the Overpayments panel</li>
+                    <li>Tick the <strong>"Enable monthly overpayment"</strong> checkbox</li>
+                    <li>Enter the extra amount you want to pay each month</li>
+                    <li>Watch the charts update to show the impact</li>
+                </ol>
 
-            <div class="highlight-box warning">
-                <strong>Note</strong>
-                Lump sums are applied at the start of the specified year (January). The amortization table highlights months with lump sum payments in orange.
-            </div>
-        </div>
+                <div class="highlight-box">
+                    <strong>Example</strong>
+                    On a &euro;200,000 mortgage at 3% over 25 years, paying an extra &euro;200/month could save you over &euro;25,000 in interest and reduce your term by 5+ years.
+                </div>
 
-        <div class="section">
-            <h2>Amortization Table</h2>
-            <p>The amortization table shows a detailed breakdown of every payment over the life of your mortgage.</p>
-
-            <h3>Table Controls</h3>
-            <table>
-                <tr>
-                    <th>Control</th>
-                    <th>Options</th>
-                </tr>
-                <tr>
-                    <td>View</td>
-                    <td><strong>With Overpayments</strong> - shows schedule with your overpayments applied<br>
-                        <strong>Standard Schedule</strong> - shows the original payment schedule</td>
-                </tr>
-                <tr>
-                    <td>Show</td>
-                    <td><strong>All Months</strong> - displays every monthly payment<br>
-                        <strong>Yearly Summary</strong> - aggregates data by year</td>
-                </tr>
-            </table>
-
-            <h3>Table Columns</h3>
-            <table>
-                <tr>
-                    <th>Column</th>
-                    <th>Description</th>
-                </tr>
-                <tr>
-                    <td>#</td>
-                    <td>Payment number (or months in year for yearly view)</td>
-                </tr>
-                <tr>
-                    <td>Date</td>
-                    <td>Month and year of the payment</td>
-                </tr>
-                <tr>
-                    <td>Payment</td>
-                    <td>Total payment amount for that month</td>
-                </tr>
-                <tr>
-                    <td>Principal</td>
-                    <td>Amount going towards your loan balance</td>
-                </tr>
-                <tr>
-                    <td>Interest</td>
-                    <td>Amount going to the lender as interest</td>
-                </tr>
-                <tr>
-                    <td>Extra</td>
-                    <td>Overpayments and lump sums (shown in green/orange)</td>
-                </tr>
-                <tr>
-                    <td>Balance</td>
-                    <td>Remaining mortgage balance after the payment</td>
-                </tr>
-            </table>
-
-            <h3>Row Highlighting</h3>
-            <ul>
-                <li><span class="color-sample" style="background:#e8f4f8"></span><strong>Blue rows</strong> - January (start of each year)</li>
-                <li><span class="color-sample" style="background:#fff3e0"></span><strong>Orange rows</strong> - Months with lump sum payments</li>
-            </ul>
-        </div>
-
-        <div class="section">
-            <h2>Tips for Planning</h2>
-
-            <div class="highlight-box tip">
-                <strong>Start Small</strong>
-                Even small overpayments make a difference. Try &euro;50-100/month to start and increase when possible.
+                <h3>What the Summary Shows</h3>
+                <table>
+                    <tr>
+                        <th>Field</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>Standard Term</td>
+                        <td>Your original mortgage length</td>
+                    </tr>
+                    <tr>
+                        <td>With Overpayments</td>
+                        <td>New term with overpayments applied</td>
+                    </tr>
+                    <tr>
+                        <td>Standard Interest</td>
+                        <td>Total interest without overpayments</td>
+                    </tr>
+                    <tr>
+                        <td>Interest Saved</td>
+                        <td>How much you save by overpaying</td>
+                    </tr>
+                </table>
             </div>
 
-            <div class="highlight-box tip">
-                <strong>Use Windfalls</strong>
-                Tax refunds, bonuses, or gifts can be added as lump sums to see their long-term impact.
-            </div>
+            <div class="divider"></div>
 
-            <div class="highlight-box tip">
-                <strong>Compare Scenarios</strong>
-                Toggle between "Standard Schedule" and "With Overpayments" in the table to compare the difference.
-            </div>
+            <div class="section">
+                <h2>Lump Sum Payments</h2>
+                <p>Lump sum payments are one-time extra payments, such as a bonus, inheritance, or savings.</p>
 
-            <div class="highlight-box warning">
-                <strong>Check Your Mortgage Terms</strong>
-                Some mortgages have limits on overpayments (often 10% per year) or early repayment charges. Check with your lender before making large overpayments.
+                <h3>How to Add Lump Sums</h3>
+                <ol>
+                    <li>Click <strong>"Show advanced options"</strong> to reveal the Lump Sum panel</li>
+                    <li>Click the <strong>"+ Add Lump Sum"</strong> button</li>
+                    <li>Enter the <strong>year</strong> when you'll make the payment</li>
+                    <li>Enter the <strong>amount</strong> of the lump sum</li>
+                    <li>Add multiple lump sums if needed</li>
+                    <li>Click the <strong>&times;</strong> button to remove a lump sum</li>
+                </ol>
+
+                <div class="highlight-box warning">
+                    <strong>Note</strong>
+                    Lump sums are applied at the start of the specified year (January). The amortization table highlights months with lump sum payments.
+                </div>
             </div>
         </div>
 
-        <div class="section">
-            <h2>Keyboard Shortcuts</h2>
-            <p>Use the <code>Tab</code> key to move between input fields quickly. All inputs accept direct number entry.</p>
+        <!-- Interest Rates Tab -->
+        <div class="tab-content" id="rates">
+            <div class="section">
+                <h2>Interest Rate Periods <span class="new-badge">New</span></h2>
+                <p>Model scenarios where your interest rate changes over time, such as fixed-rate periods followed by variable rates.</p>
+
+                <h3>How to Add Rate Periods</h3>
+                <ol>
+                    <li>Click <strong>"Show advanced options"</strong> to reveal the Interest Rate Periods panel</li>
+                    <li>Click the <strong>"+ Add Rate Period"</strong> button</li>
+                    <li>Enter the <strong>Start Year</strong> - when this rate begins</li>
+                    <li>Enter the <strong>End Year</strong> - when this rate ends</li>
+                    <li>Enter the <strong>Rate %</strong> - the interest rate for this period</li>
+                    <li>Add multiple periods to cover your full mortgage term</li>
+                </ol>
+
+                <div class="highlight-box">
+                    <strong>Example</strong>
+                    If you have a 5-year fixed rate at 2.5% starting in 2025, followed by a variable rate of 4%:
+                    <br><br>
+                    Period 1: Start 2025, End 2029, Rate 2.5%<br>
+                    Period 2: Start 2030, End 2055, Rate 4.0%
+                </div>
+
+                <div class="highlight-box tip">
+                    <strong>Visual Indicator</strong>
+                    When rate periods are defined, the balance chart shows different colored segments for each rate period, making it easy to see how rate changes affect your repayment.
+                </div>
+            </div>
+        </div>
+
+        <!-- Exports Tab -->
+        <div class="tab-content" id="exports">
+            <div class="section">
+                <h2>Export Features <span class="new-badge">New</span></h2>
+                <p>Export your mortgage analysis for records, sharing, or further analysis.</p>
+
+                <h3>Chart Exports</h3>
+                <table>
+                    <tr>
+                        <th>Format</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>PNG</strong></td>
+                        <td>Click the "PNG" button on any chart to download it as an image file. Perfect for sharing or presentations.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PDF (All Charts)</strong></td>
+                        <td>Click "Export All Charts as PDF" to create a multi-page PDF containing all four charts plus a mortgage summary page.</td>
+                    </tr>
+                </table>
+
+                <h3>Schedule Exports</h3>
+                <table>
+                    <tr>
+                        <th>Format</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td><strong>CSV</strong></td>
+                        <td>Download the full amortization schedule as a spreadsheet file. Opens in Excel, Google Sheets, or any spreadsheet application. Includes all columns and totals.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>PDF</strong></td>
+                        <td>Download a professionally formatted PDF of the amortization schedule with headers, page numbers, and totals.</td>
+                    </tr>
+                </table>
+
+                <div class="highlight-box tip">
+                    <strong>Tip</strong>
+                    The export buttons are located next to each chart title (for PNG) and above the amortization table (for CSV/PDF). Exports respect your current view selection (Standard or With Overpayments).
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section">
+                <h2>Amortization Table</h2>
+                <p>The amortization table shows a detailed breakdown of every payment over the life of your mortgage.</p>
+
+                <h3>Table Controls</h3>
+                <table>
+                    <tr>
+                        <th>Control</th>
+                        <th>Options</th>
+                    </tr>
+                    <tr>
+                        <td>View</td>
+                        <td><strong>With Overpayments</strong> - shows schedule with your overpayments applied<br>
+                            <strong>Standard Schedule</strong> - shows the original payment schedule</td>
+                    </tr>
+                    <tr>
+                        <td>Show</td>
+                        <td><strong>All Months</strong> - displays every monthly payment<br>
+                            <strong>Yearly Summary</strong> - aggregates data by year</td>
+                    </tr>
+                    <tr>
+                        <td>Export CSV</td>
+                        <td>Download schedule as spreadsheet file</td>
+                    </tr>
+                    <tr>
+                        <td>Export PDF</td>
+                        <td>Download schedule as formatted PDF</td>
+                    </tr>
+                </table>
+
+                <h3>Table Columns</h3>
+                <table>
+                    <tr>
+                        <th>Column</th>
+                        <th>Description</th>
+                    </tr>
+                    <tr>
+                        <td>#</td>
+                        <td>Payment number (or months in year for yearly view)</td>
+                    </tr>
+                    <tr>
+                        <td>Date</td>
+                        <td>Month and year of the payment</td>
+                    </tr>
+                    <tr>
+                        <td>Payment</td>
+                        <td>Total payment amount for that month</td>
+                    </tr>
+                    <tr>
+                        <td>Principal</td>
+                        <td>Amount going towards your loan balance</td>
+                    </tr>
+                    <tr>
+                        <td>Interest</td>
+                        <td>Amount going to the lender as interest</td>
+                    </tr>
+                    <tr>
+                        <td>Extra</td>
+                        <td>Overpayments and lump sums combined</td>
+                    </tr>
+                    <tr>
+                        <td>Balance</td>
+                        <td>Remaining mortgage balance after the payment</td>
+                    </tr>
+                </table>
+
+                <h3>Row Highlighting</h3>
+                <ul>
+                    <li><span class="color-sample" style="background:#e8f4f8"></span><strong>Blue rows</strong> - January (start of each year)</li>
+                    <li><span class="color-sample" style="background:#e8f5e9"></span><strong>Green rows</strong> - Months with lump sum payments</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Tips Tab -->
+        <div class="tab-content" id="tips">
+            <div class="section">
+                <h2>Tips for Planning</h2>
+
+                <div class="highlight-box tip">
+                    <strong>Start Small</strong>
+                    Even small overpayments make a difference. Try &euro;50-100/month to start and increase when possible.
+                </div>
+
+                <div class="highlight-box tip">
+                    <strong>Use Windfalls</strong>
+                    Tax refunds, bonuses, or gifts can be added as lump sums to see their long-term impact.
+                </div>
+
+                <div class="highlight-box tip">
+                    <strong>Plan for Rate Changes</strong>
+                    If your fixed rate period is ending soon, use Interest Rate Periods to model what happens when you move to a variable rate.
+                </div>
+
+                <div class="highlight-box tip">
+                    <strong>Compare Scenarios</strong>
+                    Toggle between "Standard Schedule" and "With Overpayments" in the table to compare the difference.
+                </div>
+
+                <div class="highlight-box tip">
+                    <strong>Export for Advisors</strong>
+                    Use the PDF export to create professional documents to share with financial advisors or mortgage brokers.
+                </div>
+
+                <div class="highlight-box warning">
+                    <strong>Check Your Mortgage Terms</strong>
+                    Some mortgages have limits on overpayments (often 10% per year) or early repayment charges. Check with your lender before making large overpayments.
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="section">
+                <h2>Keyboard Shortcuts</h2>
+                <p>Use the <code>Tab</code> key to move between input fields quickly. All inputs accept direct number entry.</p>
+            </div>
         </div>
 
         <footer>
             <p><a href="mortgage_calculator.html">Back to Calculator</a></p>
         </footer>
     </div>
+
+    <script>
+        // Tab switching functionality
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons and content
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+                // Add active class to clicked button
+                button.classList.add('active');
+
+                // Show corresponding content
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
 </body>
 </html>
