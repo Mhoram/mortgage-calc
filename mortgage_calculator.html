@@ -648,14 +648,14 @@
                         <label>Principal Amount</label>
                         <div class="input-with-prefix">
                             <span>&euro;</span>
-                            <input type="number" id="principal" value="196687" min="1000" step="1000">
+                            <input type="number" id="principal" value="300000" min="1000" step="1000">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>Annual Interest Rate</label>
                         <div class="input-with-suffix">
-                            <input type="number" id="rate" value="2.85" min="0.1" max="20" step="0.05">
+                            <input type="number" id="rate" value="3.1" min="0.1" max="20" step="0.05">
                             <span>%</span>
                         </div>
                     </div>
@@ -663,14 +663,14 @@
                     <div class="form-group">
                         <label>Loan Term</label>
                         <div class="input-with-suffix">
-                            <input type="number" id="term" value="23" min="1" max="40" step="1">
+                            <input type="number" id="term" value="30" min="1" max="40" step="1">
                             <span>years</span>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>Start Year</label>
-                        <input type="number" id="startYear" value="2025" min="2000" max="2100" step="1">
+                        <input type="number" id="startYear" value="2026" min="2000" max="2100" step="1">
                     </div>
 
                     <!-- Advanced Options Toggle -->
@@ -999,8 +999,8 @@
         }
 
         function addLumpSum() {
-            const startYear = parseInt(startYearInput.value) || 2025;
-            const term = parseInt(termInput.value) || 23;
+            const startYear = parseInt(startYearInput.value) || getConfig('startYear');
+            const term = parseInt(termInput.value) || getConfig('termYears');
             const id = Date.now();
 
             lumpSums.push({ id, year: startYear + 5, amount: 10000 });
@@ -1203,10 +1203,10 @@
         }
 
         function calculate() {
-            const principal = parseFloat(principalInput.value) || 196687;
-            const annualRate = (parseFloat(rateInput.value) || 2.85) / 100;
-            const termYears = parseInt(termInput.value) || 23;
-            const startYear = parseInt(startYearInput.value) || 2025;
+            const principal = parseFloat(principalInput.value) || getConfig('principal');
+            const annualRate = (parseFloat(rateInput.value) || getConfig('annualRate')) / 100;
+            const termYears = parseInt(termInput.value) || getConfig('termYears');
+            const startYear = parseInt(startYearInput.value) || getConfig('startYear');
             const monthlyRate = annualRate / 12;
             const totalPayments = termYears * 12;
 
