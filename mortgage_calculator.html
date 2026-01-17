@@ -979,9 +979,15 @@
         window.updateRatePeriod = updateRatePeriod;
 
         function calculateAmortization(principal, defaultMonthlyRate, totalPayments, monthlyOverpayment = 0, lumpSumPayments = [], ratePeriodsList = []) {
-            // Calculate base monthly payment using default rate
-            const monthlyPayment = principal * (defaultMonthlyRate * Math.pow(1 + defaultMonthlyRate, totalPayments)) /
-                                   (Math.pow(1 + defaultMonthlyRate, totalPayments) - 1);
+            // Helper function to calculate monthly payment
+            function calcMonthlyPayment(p, r, n) {
+                if (r === 0) return p / n;
+                return p * (r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1);
+            }
+
+            // Calculate initial monthly payment using default rate
+            let currentMonthlyPayment = calcMonthlyPayment(principal, defaultMonthlyRate, totalPayments);
+            const initialMonthlyPayment = currentMonthlyPayment;
 
             let balance = principal;
             const balances = [balance];
@@ -1017,9 +1023,17 @@
                     }
                 }
 
+                // When rate changes, recalculate monthly payment based on remaining balance and term
+                if (lastRate !== null && lastRate !== monthlyRate) {
+                    const remainingPayments = totalPayments - month + 1;
+                    if (remainingPayments > 0 && balance > 0) {
+                        currentMonthlyPayment = calcMonthlyPayment(balance, monthlyRate, remainingPayments);
+                    }
+                }
+
                 // Track rate changes for chart coloring
                 if (lastRate !== monthlyRate) {
-                    rateChanges.push({ month, year: currentYear, rate: monthlyRate * 12 * 100 });
+                    rateChanges.push({ month, year: currentYear, rate: monthlyRate * 12 * 100, payment: currentMonthlyPayment });
                     lastRate = monthlyRate;
                 }
 
@@ -1033,7 +1047,7 @@
                 });
 
                 const interest = balance * monthlyRate;
-                const basePrincipal = monthlyPayment - interest;
+                const basePrincipal = currentMonthlyPayment - interest;
                 let totalPrincipalPaid = basePrincipal + monthlyOverpayment + lumpSumThisMonth;
 
                 // Don't overpay
@@ -1052,7 +1066,7 @@
                     year: currentYear,
                     monthNum: currentMonth,
                     date: `${currentYear}-${String(currentMonth).padStart(2, '0')}`,
-                    payment: monthlyPayment,
+                    payment: currentMonthlyPayment,
                     principal: basePrincipal,
                     interest: interest,
                     extra: monthlyOverpayment,
@@ -1071,7 +1085,7 @@
             }
 
             return {
-                monthlyPayment,
+                monthlyPayment: initialMonthlyPayment,
                 balances,
                 principalPayments,
                 interestPayments,
