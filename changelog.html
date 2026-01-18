@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog - Just Another Mortgage Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .changelog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .changelog-entry {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid #3498db;
+        }
+
+        .changelog-entry:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+        }
+
+        .changelog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .changelog-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .changelog-date {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            background: #f0f2f5;
+            padding: 4px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .changelog-description {
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .changelog-description ul {
+            margin: 10px 0 0 20px;
+        }
+
+        .changelog-description li {
+            margin-bottom: 6px;
+        }
+
+        .changelog-description code {
+            background: #f1f2f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85em;
+            color: #8e44ad;
+        }
+
+        .pr-link {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .pr-link:hover {
+            text-decoration: underline;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: #e67e22;
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin-left: 10px;
+            vertical-align: middle;
+            font-weight: 600;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: #95a5a6;
+            font-size: 0.9rem;
+        }
+
+        footer a {
+            color: #3498db;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">&larr; Back to Calculator</a>
+
+        <header>
+            <h1>Changelog</h1>
+            <p>Track all updates and improvements to the Mortgage Calculator</p>
+        </header>
+
+        <div class="changelog-list">
+            <!-- v1.6.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">♻️ Refactor monolithic HTML into modular architecture</span>
+                    <span class="changelog-date">18 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <p>Split the 2086-line single file into a clean modular structure:</p>
+                    <ul>
+                        <li><code>index.html</code> - Clean HTML structure (282 lines)</li>
+                        <li><code>css/styles.css</code> - All styling (601 lines)</li>
+                        <li><code>js/calculations.js</code> - Core amortization math</li>
+                        <li><code>js/charts.js</code> - Chart.js configuration</li>
+                        <li><code>js/exports.js</code> - PDF/CSV export functionality</li>
+                        <li><code>js/app.js</code> - Main application logic & state</li>
+                    </ul>
+                    <p>Also pinned Chart.js CDN to v4.4.1 for stability.</p>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/9" class="pr-link">PR #9</a>
+            </div>
+
+            <!-- v1.5.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">🔧 Fix config.js fallback handling</span>
+                    <span class="changelog-date">17 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <ul>
+                        <li>Fix hardcoded fallbacks in <code>calculate()</code> and <code>addLumpSum()</code> to use <code>getConfig()</code></li>
+                        <li>Sync HTML default values with <code>DEFAULT_CONFIG</code> for consistency</li>
+                        <li>Config values now properly load from <code>config.js</code></li>
+                    </ul>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/8" class="pr-link">PR #8</a>
+            </div>
+
+            <!-- v1.4.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">🏠 Adding logo and changing name</span>
+                    <span class="changelog-date">17 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <ul>
+                        <li>Renamed to "Just Another Mortgage Calculator"</li>
+                        <li>Added custom SVG logo featuring a house with chart bars and percentage symbol</li>
+                        <li>Updated page titles and branding throughout</li>
+                    </ul>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/7" class="pr-link">PR #7</a>
+            </div>
+
+            <!-- v1.3.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">🔧 Fix variable rate calculations & add pie chart percentages</span>
+                    <span class="changelog-date">17 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <ul>
+                        <li>Fix variable rate period calculations - monthly payment now recalculates when interest rate changes</li>
+                        <li>Add percentage labels to cost breakdown pie chart (on slices + in tooltips)</li>
+                    </ul>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/6" class="pr-link">PR #6</a>
+            </div>
+
+            <!-- v1.2.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">✨ Collapsible advanced options & tabbed guide</span>
+                    <span class="changelog-date">17 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <ul>
+                        <li>Advanced options (overpayments, lump sums, rate periods) now collapse behind a toggle button</li>
+                        <li>Usage guide converted from long scroll to clean tabbed interface with 5 tabs</li>
+                        <li>"New" badges highlight recent features</li>
+                    </ul>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/5" class="pr-link">PR #5</a>
+            </div>
+
+            <!-- v1.1.1 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">♿ Colorblind-friendly color scheme</span>
+                    <span class="changelog-date">16 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <p>Makes all visualizations accessible for red/green color blindness:</p>
+                    <ul>
+                        <li><strong>Orange</strong> replaces green (positive values, principal)</li>
+                        <li><strong>Purple</strong> replaces red (interest, costs)</li>
+                        <li>Updated all charts & PDF exports</li>
+                    </ul>
+                    <p>Accessible for deuteranopia & protanopia.</p>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/4" class="pr-link">PR #4</a>
+            </div>
+
+            <!-- v1.1.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">✨ Add export functionality for charts & schedules</span>
+                    <span class="changelog-date">16 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <p>Export your mortgage analysis with beautiful, branded outputs:</p>
+                    <ul>
+                        <li><strong>Chart Exports:</strong> PNG for individual charts, PDF for all charts + summary</li>
+                        <li><strong>Schedule Exports:</strong> CSV for spreadsheets, PDF with professional formatting</li>
+                        <li><strong>Styled PDFs:</strong> Branded headers, page numbers, color-coded tables</li>
+                    </ul>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/3" class="pr-link">PR #3</a>
+            </div>
+
+            <!-- v1.0.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">📈 Add variable interest rate periods feature</span>
+                    <span class="changelog-date">15 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <ul>
+                        <li>Support for defining multiple interest rate periods with different rates</li>
+                        <li>Integrate rate periods into the amortization calculation engine</li>
+                        <li>Color-coded graph segments to visualize different rate periods</li>
+                        <li>Configuration file support for pre-defined rate periods</li>
+                    </ul>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/2" class="pr-link">PR #2</a>
+            </div>
+
+            <!-- Initial -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">🚀 Initial Release</span>
+                    <span class="changelog-date">13 January 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <p>First version of the Mortgage Calculator with core features:</p>
+                    <ul>
+                        <li>Basic mortgage calculations with principal, rate, and term inputs</li>
+                        <li>Monthly overpayment support</li>
+                        <li>Lump sum payment scheduling</li>
+                        <li>Interactive charts for balance, payments, and cost breakdown</li>
+                        <li>Detailed amortization table with monthly/yearly views</li>
+                    </ul>
+                </div>
+                <a href="https://github.com/Mhoram/mortgage-calc/pull/1" class="pr-link">PR #1</a>
+            </div>
+        </div>
+
+        <footer>
+            <p><a href="index.html">Back to Calculator</a></p>
+        </footer>
+    </div>
+</body>
+</html>
