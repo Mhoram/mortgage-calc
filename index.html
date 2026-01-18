@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Just Another Mortgage Calculator</title>
+
+    <!-- External Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Application Config -->
+    <script src="config.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <!-- House outline -->
+                    <path d="M50 8 L90 40 L90 92 L10 92 L10 40 Z" fill="#3498db" stroke="#2c3e50" stroke-width="3"/>
+                    <!-- Roof -->
+                    <path d="M50 8 L95 45 L88 45 L50 15 L12 45 L5 45 Z" fill="#2c3e50"/>
+                    <!-- Door -->
+                    <rect x="40" y="60" width="20" height="32" rx="2" fill="#2c3e50"/>
+                    <!-- Window -->
+                    <rect x="58" y="48" width="18" height="14" rx="2" fill="#fff" opacity="0.9"/>
+                    <line x1="67" y1="48" x2="67" y2="62" stroke="#2c3e50" stroke-width="2"/>
+                    <line x1="58" y1="55" x2="76" y2="55" stroke="#2c3e50" stroke-width="2"/>
+                    <!-- Chart bars inside house -->
+                    <rect x="22" y="65" width="8" height="18" rx="1" fill="#e67e22"/>
+                    <rect x="22" y="52" width="8" height="31" rx="1" fill="#e67e22" opacity="0.6"/>
+                    <rect x="22" y="58" width="8" height="25" rx="1" fill="#e67e22" opacity="0.8"/>
+                    <!-- Percentage symbol -->
+                    <circle cx="72" cy="28" r="6" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+                    <circle cx="84" cy="40" r="6" fill="none" stroke="#e67e22" stroke-width="2.5"/>
+                    <line x1="84" y1="24" x2="72" y2="44" stroke="#e67e22" stroke-width="2.5"/>
+                </svg>
+                Just Another Mortgage Calculator
+            </h1>
+            <p>Visualise your mortgage and see the impact of overpayments | <a href="guide.html" style="color: #3498db;">Usage Guide</a></p>
+        </header>
+
+        <div class="main-layout">
+            <!-- Input Panel -->
+            <div class="inputs-column">
+                <div class="panel">
+                    <h2>Mortgage Details</h2>
+
+                    <div class="form-group">
+                        <label>Principal Amount</label>
+                        <div class="input-with-prefix">
+                            <span>&euro;</span>
+                            <input type="number" id="principal" value="300000" min="1000" step="1000">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Annual Interest Rate</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="rate" value="3.1" min="0.1" max="20" step="0.05">
+                            <span>%</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Loan Term</label>
+                        <div class="input-with-suffix">
+                            <input type="number" id="term" value="30" min="1" max="40" step="1">
+                            <span>years</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Start Year</label>
+                        <input type="number" id="startYear" value="2026" min="2000" max="2100" step="1">
+                    </div>
+
+                    <!-- Advanced Options Toggle -->
+                    <button class="advanced-toggle" id="advancedToggle" onclick="toggleAdvancedOptions()">
+                        <span class="icon">&#9660;</span>
+                        <span class="text">Show advanced options</span>
+                    </button>
+                </div>
+
+                <!-- Advanced Section (hidden by default) -->
+                <div class="advanced-section" id="advancedSection">
+                    <div class="panel" style="margin-top: 20px;">
+                        <h2>Overpayments</h2>
+
+                        <div class="toggle-group">
+                            <input type="checkbox" id="enableOverpayment">
+                            <label for="enableOverpayment">Enable monthly overpayment</label>
+                        </div>
+
+                        <div class="form-group" id="overpaymentGroup" style="display: none;">
+                            <label>Extra Monthly Payment</label>
+                            <div class="input-with-prefix">
+                                <span>&euro;</span>
+                                <input type="number" id="overpayment" value="100" min="0" step="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="margin-top: 20px;">
+                        <h2>Lump Sum Payments</h2>
+
+                        <div class="lump-sum-list" id="lumpSumList">
+                            <!-- Lump sums will be added here -->
+                        </div>
+
+                        <button class="btn-add" id="addLumpSum">+ Add Lump Sum</button>
+                    </div>
+
+                    <div class="panel" style="margin-top: 20px;">
+                        <h2>Interest Rate Periods <span class="new-badge">New</span></h2>
+                        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">Define different rates for different time periods. Leave empty to use the default rate above.</p>
+
+                        <div class="rate-period-header">
+                            <span>Start</span>
+                            <span>End</span>
+                            <span>Rate %</span>
+                            <span></span>
+                        </div>
+
+                        <div class="rate-period-list" id="ratePeriodList">
+                            <!-- Rate periods will be added here -->
+                        </div>
+
+                        <button class="btn-add" id="addRatePeriod">+ Add Rate Period</button>
+                    </div>
+                </div>
+
+                <div class="panel" style="margin-top: 20px;">
+                    <h2>Summary Comparison</h2>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <label>Standard Term</label>
+                            <div class="value" id="standardTerm">-</div>
+                        </div>
+                        <div class="summary-item highlight">
+                            <label>With Overpayments</label>
+                            <div class="value" id="newTerm">-</div>
+                            <div class="sub-value" id="timeSaved"></div>
+                        </div>
+                        <div class="summary-item">
+                            <label>Standard Interest</label>
+                            <div class="value" id="standardInterest">-</div>
+                        </div>
+                        <div class="summary-item highlight">
+                            <label>Interest Saved</label>
+                            <div class="value positive" id="interestSaved">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Column -->
+            <div class="charts-container">
+                <!-- Summary Cards -->
+                <div class="summary-cards">
+                    <div class="summary-card">
+                        <label>Monthly Payment</label>
+                        <div class="value" id="monthlyPayment">&euro;0</div>
+                        <div class="detail" id="monthlyDetail">Standard payment</div>
+                    </div>
+                    <div class="summary-card">
+                        <label>Total Interest</label>
+                        <div class="value" id="totalInterest">&euro;0</div>
+                        <div class="detail" id="interestDetail">Over full term</div>
+                    </div>
+                    <div class="summary-card">
+                        <label>Total Cost</label>
+                        <div class="value" id="totalCost">&euro;0</div>
+                        <div class="detail" id="costDetail">Principal + Interest</div>
+                    </div>
+                    <div class="summary-card">
+                        <label>Completion Year</label>
+                        <div class="value" id="completionYear">-</div>
+                        <div class="detail" id="completionDetail">Mortgage paid off</div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="chart-panel">
+                        <div class="chart-header">
+                            <h3>Remaining Balance Over Time</h3>
+                            <button class="btn-export" onclick="exportChartAsPNG('balanceChart', 'balance-chart')">PNG</button>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="balanceChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-panel">
+                        <div class="chart-header">
+                            <h3>Monthly Payment Breakdown</h3>
+                            <button class="btn-export" onclick="exportChartAsPNG('paymentChart', 'payment-breakdown')">PNG</button>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="paymentChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-panel">
+                        <div class="chart-header">
+                            <h3>Cumulative Payments Over Time</h3>
+                            <button class="btn-export" onclick="exportChartAsPNG('cumulativeChart', 'cumulative-payments')">PNG</button>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="cumulativeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-panel">
+                        <div class="chart-header">
+                            <h3>Total Cost Breakdown</h3>
+                            <button class="btn-export" onclick="exportChartAsPNG('pieChart', 'cost-breakdown')">PNG</button>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="export-all-container">
+                    <button class="btn-export" onclick="exportAllChartsPDF()">Export All Charts as PDF</button>
+                </div>
+                <p class="comparison-note">Blue line shows standard repayment. Green line shows repayment with overpayments.</p>
+
+                <!-- Amortization Table -->
+                <div class="table-panel">
+                    <h3>Monthly Amortization Schedule</h3>
+                    <div class="table-controls">
+                        <label>View:</label>
+                        <select id="tableView">
+                            <option value="with-overpayments">With Overpayments</option>
+                            <option value="standard">Standard Schedule</option>
+                        </select>
+                        <label>Show:</label>
+                        <select id="tableFilter">
+                            <option value="all">All Months</option>
+                            <option value="yearly">Yearly Summary</option>
+                        </select>
+                        <div class="export-group">
+                            <button class="btn-export" onclick="exportScheduleCSV()">Export CSV</button>
+                            <button class="btn-export secondary" onclick="exportSchedulePDF()">Export PDF</button>
+                        </div>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="amortization-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Date</th>
+                                    <th>Payment</th>
+                                    <th>Principal</th>
+                                    <th>Interest</th>
+                                    <th>Extra</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="amortizationBody">
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-summary" id="tableSummary">
+                        <!-- Summary will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Scripts -->
+    <script src="js/calculations.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/exports.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
