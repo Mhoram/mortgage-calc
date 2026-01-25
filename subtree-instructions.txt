@@ -1,0 +1,75 @@
+● Based on my knowledge, AWS Amplify Hosting does support git subtrees, but with
+  some considerations:
+
+  Yes, it works - Amplify can build and deploy from repositories that use git
+  subtrees since subtrees are part of the main repository's history (unlike
+  submodules which are separate references).
+
+  Key points:
+
+  1. Subtree content is included - When Amplify clones your repo, subtree
+  directories are already present in the repo, so no special configuration is
+  needed to fetch them.
+  2. Build settings - You may need to adjust your amplify.yml if your app root is
+  within a subtree directory:
+  version: 1
+  appRoot: path/to/subtree
+  frontend:
+    phases:
+      build:
+        commands:
+          - npm install
+          - npm run build
+  3. Monorepo settings - If using subtrees in a monorepo setup, you can configure
+  Amplify to only trigger builds when files in specific paths change.
+
+  Potential gotchas:
+  - Build triggers happen on any push to the branch, regardless of which subtree
+  changed
+  - If you need path-based filtering for builds, configure it in Amplify's "Build
+  settings" > "Monorepo" options
+
+  Would you like more specific information about configuring Amplify with a
+  particular subtree setup?
+
+> Yes, I have one repo that lives here
+  /mnt/c/Users/karlw/Documents/Dev/karlwallace.com and I want the repo that
+  lives here /mnt/c/Users/karlw/Documents/Dev/finances to be a sub tree
+
+● Here's how to add the finances repo as a subtree in your karlwallace.com repo:
+
+  Setup Steps
+
+  1. Navigate to your main repo:
+  cd /mnt/c/Users/karlw/Documents/Dev/karlwallace.com
+
+  2. Add the finances repo as a remote:
+  git remote add finances https://github.com/Mhoram/mortgage-calc.git
+  (Replace with your actual remote URL if different)
+
+  3. Add the subtree:
+  git subtree add --prefix=finances finances main --squash
+
+  This creates a finances/ directory in karlwallace.com containing the finances
+  repo content.
+
+  Ongoing Workflow
+
+  Pull updates from finances repo:
+  git subtree pull --prefix=finances finances main --squash
+
+  Push changes back to finances repo (if you edit files in the subtree):
+  git subtree push --prefix=finances finances main
+
+  AWS Amplify Configuration
+
+  In your karlwallace.com Amplify app, if the finances calculator should be at
+  /finances:
+  - The files will already be in the finances/ directory
+  - No special Amplify config needed since subtree content is part of your main
+  repo
+
+  If finances should be a separate Amplify app, you can set up a second Amplify app
+   pointing to the same repo with appRoot: finances in the build settings.
+
+  Want me to help you run these commands?
