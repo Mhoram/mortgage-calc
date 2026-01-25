@@ -7,12 +7,22 @@ const MortgageApp = {
     // DOM Elements
     elements: {},
 
+    // Currency configuration
+    CURRENCIES: {
+        EUR: { symbol: '\u20AC', locale: 'en-IE', name: 'Euro' },
+        USD: { symbol: '$', locale: 'en-US', name: 'US Dollar' },
+        GBP: { symbol: '\u00A3', locale: 'en-GB', name: 'British Pound' }
+    },
+
     // Application State
     state: {
         lumpSums: [],
         ratePeriods: [],
         standardSchedule: [],
-        overpaymentSchedule: []
+        overpaymentSchedule: [],
+        currency: 'EUR',
+        exchangeRates: { EUR: 1, USD: 1, GBP: 1 },
+        ratesLoaded: false
     },
 
     // Default configuration (fallback if config.js not loaded)
@@ -36,8 +46,10 @@ const MortgageApp = {
     init() {
         this.cacheElements();
         this.loadConfigValues();
+        this.loadCurrency();
         MortgageCharts.init();
         this.setupEventListeners();
+        this.fetchExchangeRates();
         this.calculate();
     },
 
@@ -60,7 +72,9 @@ const MortgageApp = {
             tableView: document.getElementById('tableView'),
             tableFilter: document.getElementById('tableFilter'),
             amortizationBody: document.getElementById('amortizationBody'),
-            tableSummary: document.getElementById('tableSummary')
+            tableSummary: document.getElementById('tableSummary'),
+            currencySelect: document.getElementById('currencySelect'),
+            currencySymbols: document.querySelectorAll('.currency-symbol')
         };
     },
 
@@ -119,6 +133,79 @@ const MortgageApp = {
     },
 
     /**
+     * Load currency from config/localStorage
+     */
+    loadCurrency() {
+        const savedCurrency = localStorage.getItem('mortgageCalcCurrency');
+        const configCurrency = this.getConfig('currency');
+        this.state.currency = savedCurrency || configCurrency || 'EUR';
+
+        if (this.elements.currencySelect) {
+            this.elements.currencySelect.value = this.state.currency;
+        }
+        this.updateCurrencySymbols();
+    },
+
+    /**
+     * Fetch exchange rates from Frankfurter API
+     */
+    async fetchExchangeRates() {
+        const selector = this.elements.currencySelect;
+        if (selector) selector.classList.add('currency-loading');
+
+        try {
+            const response = await fetch('https://api.frankfurter.app/latest?from=EUR&to=USD,GBP');
+            if (!response.ok) throw new Error('API request failed');
+
+            const data = await response.json();
+            this.state.exchangeRates = {
+                EUR: 1,
+                USD: data.rates.USD,
+                GBP: data.rates.GBP
+            };
+            this.state.ratesLoaded = true;
+        } catch (error) {
+            console.warn('Failed to fetch exchange rates, using fallback rates:', error);
+            // Fallback rates (approximate)
+            this.state.exchangeRates = { EUR: 1, USD: 1.08, GBP: 0.86 };
+        } finally {
+            if (selector) selector.classList.remove('currency-loading');
+            // Refresh display with new rates
+            this.calculate();
+        }
+    },
+
+    /**
+     * Set the current currency and update display
+     */
+    setCurrency(currency) {
+        if (!this.CURRENCIES[currency]) return;
+
+        this.state.currency = currency;
+        localStorage.setItem('mortgageCalcCurrency', currency);
+        this.updateCurrencySymbols();
+        this.calculate();
+    },
+
+    /**
+     * Update all currency symbol displays
+     */
+    updateCurrencySymbols() {
+        const symbol = this.CURRENCIES[this.state.currency].symbol;
+        this.elements.currencySymbols.forEach(el => {
+            el.textContent = symbol;
+        });
+    },
+
+    /**
+     * Convert EUR value to current currency
+     */
+    convertCurrency(valueInEUR) {
+        const rate = this.state.exchangeRates[this.state.currency] || 1;
+        return valueInEUR * rate;
+    },
+
+    /**
      * Setup event listeners
      */
     setupEventListeners() {
@@ -143,6 +230,11 @@ const MortgageApp = {
         // Table controls
         el.tableView.addEventListener('change', () => this.updateTable());
         el.tableFilter.addEventListener('change', () => this.updateTable());
+
+        // Currency selector
+        if (el.currencySelect) {
+            el.currencySelect.addEventListener('change', (e) => this.setCurrency(e.target.value));
+        }
     },
 
     /**
@@ -314,8 +406,9 @@ const MortgageApp = {
 
         // Summary cards
         document.getElementById('monthlyPayment').textContent = this.formatCurrency(standard.monthlyPayment);
+        const convertedOverpayment = this.convertCurrency(monthlyOverpayment);
         document.getElementById('monthlyDetail').textContent = overpaymentEnabled && monthlyOverpayment > 0
-            ? `+\u20AC${monthlyOverpayment.toFixed(0)} overpayment`
+            ? `+${this.getCurrencySymbol()}${convertedOverpayment.toFixed(0)} overpayment`
             : 'Standard payment';
 
         const displayInterest = hasOverpayments ? withOverpayments.totalInterest : standard.totalInterest;
@@ -445,11 +538,22 @@ const MortgageApp = {
     // ==================== Formatting Utilities ====================
 
     formatCurrency(value) {
-        return '\u20AC' + value.toLocaleString('en-IE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        const converted = this.convertCurrency(value);
+        const currency = this.CURRENCIES[this.state.currency];
+        return currency.symbol + converted.toLocaleString(currency.locale, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
     },
 
     formatCurrencyDecimal(value) {
-        return '\u20AC' + value.toLocaleString('en-IE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const converted = this.convertCurrency(value);
+        const currency = this.CURRENCIES[this.state.currency];
+        return currency.symbol + converted.toLocaleString(currency.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    },
+
+    /**
+     * Get current currency symbol
+     */
+    getCurrencySymbol() {
+        return this.CURRENCIES[this.state.currency].symbol;
     },
 
     // ==================== Export Functions ====================

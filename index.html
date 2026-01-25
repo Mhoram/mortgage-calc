@@ -41,7 +41,13 @@
                 </svg>
                 Just Another Mortgage Calculator
             </h1>
-            <p>Visualise your mortgage and see the impact of overpayments | <a href="guide.html" style="color: #3498db;">Usage Guide</a> | <a href="changelog.html" style="color: #3498db;">Changelog</a></p>
+            <p>Visualise your mortgage and see the impact of overpayments | <a href="guide.html" style="color: #3498db;">Usage Guide</a> | <a href="changelog.html" style="color: #3498db;">Changelog</a> |
+                <select id="currencySelect" class="currency-selector" title="Select currency">
+                    <option value="EUR">&#8364; EUR</option>
+                    <option value="USD">$ USD</option>
+                    <option value="GBP">&#163; GBP</option>
+                </select>
+            </p>
         </header>
 
         <div class="main-layout">
@@ -53,7 +59,7 @@
                     <div class="form-group">
                         <label>Principal Amount</label>
                         <div class="input-with-prefix">
-                            <span>&euro;</span>
+                            <span class="currency-symbol">&euro;</span>
                             <input type="number" id="principal" value="300000" min="1000" step="1000">
                         </div>
                     </div>
@@ -99,7 +105,7 @@
                         <div class="form-group" id="overpaymentGroup" style="display: none;">
                             <label>Extra Monthly Payment</label>
                             <div class="input-with-prefix">
-                                <span>&euro;</span>
+                                <span class="currency-symbol">&euro;</span>
                                 <input type="number" id="overpayment" value="100" min="0" step="50">
                             </div>
                         </div>

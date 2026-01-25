@@ -198,7 +198,9 @@ const MortgageExports = {
         pdf.setTextColor(...this.colors.darkGray);
         pdf.setFontSize(10);
         pdf.setFont(undefined, 'normal');
-        const infoText = `Principal: \u20AC${parseFloat(mortgageInfo.principal).toLocaleString()}  |  Rate: ${mortgageInfo.rate}%  |  Term: ${mortgageInfo.term} years  |  Schedule: ${viewType === 'standard' ? 'Standard' : 'With Overpayments'}`;
+        const currencySymbol = MortgageApp.getCurrencySymbol();
+        const convertedPrincipal = MortgageApp.convertCurrency(parseFloat(mortgageInfo.principal));
+        const infoText = `Principal: ${currencySymbol}${convertedPrincipal.toLocaleString()}  |  Rate: ${mortgageInfo.rate}%  |  Term: ${mortgageInfo.term} years  |  Schedule: ${viewType === 'standard' ? 'Standard' : 'With Overpayments'}`;
         pdf.text(infoText, pageWidth / 2, 38, { align: 'center' });
 
         // Table setup
@@ -258,14 +260,15 @@ const MortgageExports = {
             pdf.setFontSize(7);
 
             let x = tableX;
+            const sym = MortgageApp.getCurrencySymbol();
             const rowData = [
                 row.month.toString(),
                 row.date,
-                '\u20AC' + row.payment.toFixed(0),
-                '\u20AC' + row.principal.toFixed(0),
-                '\u20AC' + row.interest.toFixed(0),
-                '\u20AC' + (row.extra + row.lumpSum).toFixed(0),
-                '\u20AC' + row.balance.toFixed(0)
+                sym + MortgageApp.convertCurrency(row.payment).toFixed(0),
+                sym + MortgageApp.convertCurrency(row.principal).toFixed(0),
+                sym + MortgageApp.convertCurrency(row.interest).toFixed(0),
+                sym + MortgageApp.convertCurrency(row.extra + row.lumpSum).toFixed(0),
+                sym + MortgageApp.convertCurrency(row.balance).toFixed(0)
             ];
 
             rowData.forEach((cell, i) => {
@@ -300,7 +303,8 @@ const MortgageExports = {
         pdf.setTextColor(255, 255, 255);
         pdf.setFontSize(9);
         pdf.setFont(undefined, 'bold');
-        const totalsText = `Total Paid: \u20AC${totals.totalPayment.toFixed(0)}  |  Principal: \u20AC${totals.principal.toFixed(0)}  |  Interest: \u20AC${totals.interest.toFixed(0)}  |  Extra: \u20AC${totals.extra.toFixed(0)}`;
+        const sym = MortgageApp.getCurrencySymbol();
+        const totalsText = `Total Paid: ${sym}${MortgageApp.convertCurrency(totals.totalPayment).toFixed(0)}  |  Principal: ${sym}${MortgageApp.convertCurrency(totals.principal).toFixed(0)}  |  Interest: ${sym}${MortgageApp.convertCurrency(totals.interest).toFixed(0)}  |  Extra: ${sym}${MortgageApp.convertCurrency(totals.extra).toFixed(0)}`;
         pdf.text(totalsText, pageWidth / 2, y + 6.5, { align: 'center' });
 
         pdf.save('amortization-schedule.pdf');
@@ -342,8 +346,10 @@ const MortgageExports = {
         const cardWidth = (pageWidth - margin * 3) / 2;
         const cardHeight = 35;
 
+        const sym = MortgageApp.getCurrencySymbol();
+        const convertedPrincipal = MortgageApp.convertCurrency(parseFloat(summaryData.principal));
         const summaryCards = [
-            { label: 'Loan Amount', value: `\u20AC${parseFloat(summaryData.principal).toLocaleString()}`, x: margin, y: cardY },
+            { label: 'Loan Amount', value: `${sym}${convertedPrincipal.toLocaleString()}`, x: margin, y: cardY },
             { label: 'Interest Rate', value: `${summaryData.rate}%`, x: margin + cardWidth + margin, y: cardY },
             { label: 'Loan Term', value: `${summaryData.term} years`, x: margin, y: cardY + cardHeight + 10 },
             { label: 'Monthly Payment', value: summaryData.monthlyPayment, x: margin + cardWidth + margin, y: cardY + cardHeight + 10 },
