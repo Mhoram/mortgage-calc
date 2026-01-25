@@ -46,7 +46,7 @@ const MortgageCharts = {
             scales: {
                 y: {
                     ticks: {
-                        callback: value => '\u20AC' + (value / 1000).toFixed(0) + 'k'
+                        callback: value => MortgageApp.getCurrencySymbol() + (MortgageApp.convertCurrency(value) / 1000).toFixed(0) + 'k'
                     }
                 }
             }
@@ -62,7 +62,7 @@ const MortgageCharts = {
                     ...chartOptions.plugins,
                     tooltip: {
                         callbacks: {
-                            label: ctx => ctx.dataset.label + ': \u20AC' + ctx.parsed.y.toLocaleString('en-IE', {maximumFractionDigits: 0})
+                            label: ctx => ctx.dataset.label + ': ' + MortgageApp.formatCurrency(ctx.parsed.y)
                         }
                     }
                 }
@@ -80,7 +80,7 @@ const MortgageCharts = {
                     y: {
                         stacked: true,
                         ticks: {
-                            callback: value => '\u20AC' + value.toFixed(0)
+                            callback: value => MortgageApp.getCurrencySymbol() + MortgageApp.convertCurrency(value).toFixed(0)
                         }
                     },
                     x: {
@@ -101,7 +101,7 @@ const MortgageCharts = {
                     y: {
                         stacked: true,
                         ticks: {
-                            callback: value => '\u20AC' + (value / 1000).toFixed(0) + 'k'
+                            callback: value => MortgageApp.getCurrencySymbol() + (MortgageApp.convertCurrency(value) / 1000).toFixed(0) + 'k'
                         }
                     }
                 }
@@ -122,7 +122,7 @@ const MortgageCharts = {
                             label: ctx => {
                                 const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
                                 const percentage = ((ctx.parsed / total) * 100).toFixed(1);
-                                return ctx.label + ': \u20AC' + ctx.parsed.toLocaleString('en-IE', {maximumFractionDigits: 0}) + ' (' + percentage + '%)';
+                                return ctx.label + ': ' + MortgageApp.formatCurrency(ctx.parsed) + ' (' + percentage + '%)';
                             }
                         }
                     }
