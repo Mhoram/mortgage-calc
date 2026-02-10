@@ -48,7 +48,7 @@
   (Replace with your actual remote URL if different)
 
   3. Add the subtree:
-  git subtree add --prefix=finances finances main --squash
+  git subtree add --prefix=mortgage-calc https://github.com/Mhoram/mortgage-calc.git main --squash
 
   This creates a finances/ directory in karlwallace.com containing the finances
   repo content.
@@ -57,6 +57,8 @@
 
   Pull updates from finances repo:
   git subtree pull --prefix=finances finances main --squash
+
+  git subtree pull --prefix=mortgage-calc https://github.com/Mhoram/mortgage-calc.git main --squash
 
   Push changes back to finances repo (if you edit files in the subtree):
   git subtree push --prefix=finances finances main
@@ -73,3 +75,9 @@
    pointing to the same repo with appRoot: finances in the build settings.
 
   Want me to help you run these commands?
+
+
+
+
+
+  

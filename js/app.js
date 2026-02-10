@@ -290,12 +290,13 @@ const MortgageApp = {
 
     renderLumpSums() {
         this.elements.lumpSumList.innerHTML = this.state.lumpSums.map(ls => `
-            <div class="lump-sum-item">
+            <div class="lump-sum-item" data-lumpsum-id="${ls.id}">
                 <input type="number" value="${ls.year}" min="2000" max="2100"
                        onchange="MortgageApp.updateLumpSum(${ls.id}, 'year', this.value)">
                 <input type="number" value="${ls.amount}" min="100" step="100" placeholder="Amount"
                        onchange="MortgageApp.updateLumpSum(${ls.id}, 'amount', this.value)">
                 <button class="btn-remove" onclick="MortgageApp.removeLumpSum(${ls.id})">&times;</button>
+                <div class="dynamic-item-validation" role="alert" aria-live="polite"></div>
             </div>
         `).join('');
     },
@@ -329,21 +330,207 @@ const MortgageApp = {
 
     renderRatePeriods() {
         this.elements.ratePeriodList.innerHTML = this.state.ratePeriods.map(rp => `
-            <div class="rate-period-item">
+            <div class="rate-period-item" data-rateperiod-id="${rp.id}">
                 <input type="number" value="${rp.startYear}" min="2000" max="2100"
                        onchange="MortgageApp.updateRatePeriod(${rp.id}, 'startYear', this.value)">
                 <input type="number" value="${rp.endYear}" min="2000" max="2100"
                        onchange="MortgageApp.updateRatePeriod(${rp.id}, 'endYear', this.value)">
-                <input type="number" value="${rp.rate}" min="0" max="20" step="0.01"
+                <input type="number" value="${rp.rate}" min="0" max="30" step="0.01"
                        onchange="MortgageApp.updateRatePeriod(${rp.id}, 'rate', this.value)">
                 <button class="btn-remove" onclick="MortgageApp.removeRatePeriod(${rp.id})">&times;</button>
+                <div class="dynamic-item-validation" role="alert" aria-live="polite"></div>
             </div>
         `).join('');
+    },
+
+    // ==================== Input Validation ====================
+
+    /**
+     * Set validation state on an input and its message container
+     * @param {HTMLElement} inputEl - The input element
+     * @param {HTMLElement} messageEl - The validation message container
+     * @param {'error'|'warning'} type - Validation type
+     * @param {string} message - Message to display
+     */
+    setValidation(inputEl, messageEl, type, message) {
+        inputEl.classList.remove('input-error', 'input-warning');
+        inputEl.classList.add(type === 'error' ? 'input-error' : 'input-warning');
+        messageEl.className = `validation-message ${type}`;
+        messageEl.textContent = message;
+    },
+
+    /**
+     * Clear validation state from an input and its message container
+     */
+    clearValidation(inputEl, messageEl) {
+        inputEl.classList.remove('input-error', 'input-warning');
+        messageEl.className = 'validation-message';
+        messageEl.textContent = '';
+    },
+
+    /**
+     * Validate all main form inputs
+     * @returns {boolean} true if there are blocking errors
+     */
+    validateInputs() {
+        let hasErrors = false;
+        const el = this.elements;
+
+        // --- Principal ---
+        const principalMsg = document.getElementById('principal-validation');
+        const principalVal = parseFloat(el.principal.value);
+        if (el.principal.value.trim() === '' || isNaN(principalVal)) {
+            this.setValidation(el.principal, principalMsg, 'error', 'Principal amount is required');
+            hasErrors = true;
+        } else if (principalVal < 1000) {
+            this.setValidation(el.principal, principalMsg, 'error', 'Minimum principal is 1,000');
+            hasErrors = true;
+        } else if (principalVal > 50000000) {
+            this.setValidation(el.principal, principalMsg, 'error', 'Maximum principal is 50,000,000');
+            hasErrors = true;
+        } else if (principalVal > 10000000) {
+            this.setValidation(el.principal, principalMsg, 'warning', 'Very large loan amount');
+        } else {
+            this.clearValidation(el.principal, principalMsg);
+        }
+
+        // --- Interest Rate ---
+        const rateMsg = document.getElementById('rate-validation');
+        const rateVal = parseFloat(el.rate.value);
+        if (el.rate.value.trim() === '' || isNaN(rateVal)) {
+            this.setValidation(el.rate, rateMsg, 'error', 'Interest rate is required');
+            hasErrors = true;
+        } else if (rateVal < 0) {
+            this.setValidation(el.rate, rateMsg, 'error', 'Rate cannot be negative');
+            hasErrors = true;
+        } else if (rateVal > 30) {
+            this.setValidation(el.rate, rateMsg, 'error', 'Maximum rate is 30%');
+            hasErrors = true;
+        } else if (rateVal === 0) {
+            this.setValidation(el.rate, rateMsg, 'warning', 'Interest-free loan');
+        } else if (rateVal > 15) {
+            this.setValidation(el.rate, rateMsg, 'warning', 'Unusually high interest rate');
+        } else {
+            this.clearValidation(el.rate, rateMsg);
+        }
+
+        // --- Term ---
+        const termMsg = document.getElementById('term-validation');
+        const termVal = parseInt(el.term.value);
+        if (el.term.value.trim() === '' || isNaN(termVal)) {
+            this.setValidation(el.term, termMsg, 'error', 'Loan term is required');
+            hasErrors = true;
+        } else if (termVal < 1) {
+            this.setValidation(el.term, termMsg, 'error', 'Minimum term is 1 year');
+            hasErrors = true;
+        } else if (termVal > 50) {
+            this.setValidation(el.term, termMsg, 'error', 'Maximum term is 50 years');
+            hasErrors = true;
+        } else if (termVal > 40) {
+            this.setValidation(el.term, termMsg, 'warning', 'Unusually long loan term');
+        } else {
+            this.clearValidation(el.term, termMsg);
+        }
+
+        // --- Start Year ---
+        const yearMsg = document.getElementById('startYear-validation');
+        const yearVal = parseInt(el.startYear.value);
+        if (el.startYear.value.trim() === '' || isNaN(yearVal)) {
+            this.setValidation(el.startYear, yearMsg, 'error', 'Start year is required');
+            hasErrors = true;
+        } else if (yearVal < 1990 || yearVal > 2100) {
+            this.setValidation(el.startYear, yearMsg, 'error', 'Year must be between 1990 and 2100');
+            hasErrors = true;
+        } else {
+            this.clearValidation(el.startYear, yearMsg);
+        }
+
+        // --- Overpayment (only if enabled) ---
+        const overpaymentMsg = document.getElementById('overpayment-validation');
+        if (el.enableOverpayment.checked) {
+            const overpayVal = parseFloat(el.overpayment.value);
+            if (isNaN(overpayVal) || overpayVal < 0) {
+                this.setValidation(el.overpayment, overpaymentMsg, 'error', 'Overpayment cannot be negative');
+                hasErrors = true;
+            } else {
+                this.clearValidation(el.overpayment, overpaymentMsg);
+            }
+        } else {
+            this.clearValidation(el.overpayment, overpaymentMsg);
+        }
+
+        return hasErrors;
+    },
+
+    /**
+     * Validate dynamic items (lump sums and rate periods)
+     * Called after rendering to add validation messages to items
+     */
+    validateDynamicItems() {
+        const startYear = parseInt(this.elements.startYear.value) || this.getConfig('startYear');
+        const termYears = parseInt(this.elements.term.value) || this.getConfig('termYears');
+        const endYear = startYear + termYears;
+
+        // Validate lump sums
+        this.state.lumpSums.forEach(ls => {
+            const container = document.querySelector(`[data-lumpsum-id="${ls.id}"]`);
+            if (!container) return;
+            const msgEl = container.querySelector('.dynamic-item-validation');
+            if (!msgEl) return;
+            const inputs = container.querySelectorAll('input');
+
+            inputs.forEach(i => i.classList.remove('input-error', 'input-warning'));
+            msgEl.className = 'dynamic-item-validation';
+            msgEl.textContent = '';
+
+            if (ls.year < startYear || ls.year > endYear) {
+                inputs[0].classList.add('input-error');
+                msgEl.className = 'dynamic-item-validation error';
+                msgEl.textContent = `Year must be between ${startYear} and ${endYear}`;
+            }
+            if (isNaN(ls.amount) || ls.amount <= 0) {
+                inputs[1].classList.add('input-error');
+                msgEl.className = 'dynamic-item-validation error';
+                msgEl.textContent = msgEl.textContent ? msgEl.textContent + '; Amount must be greater than 0' : 'Amount must be greater than 0';
+            }
+        });
+
+        // Validate rate periods
+        this.state.ratePeriods.forEach(rp => {
+            const container = document.querySelector(`[data-rateperiod-id="${rp.id}"]`);
+            if (!container) return;
+            const msgEl = container.querySelector('.dynamic-item-validation');
+            if (!msgEl) return;
+            const inputs = container.querySelectorAll('input');
+
+            inputs.forEach(i => i.classList.remove('input-error', 'input-warning'));
+            msgEl.className = 'dynamic-item-validation';
+            msgEl.textContent = '';
+
+            const messages = [];
+            if (rp.startYear >= rp.endYear) {
+                inputs[0].classList.add('input-error');
+                inputs[1].classList.add('input-error');
+                messages.push('Start year must be before end year');
+            }
+            if (isNaN(rp.rate) || rp.rate < 0 || rp.rate > 30) {
+                inputs[2].classList.add('input-error');
+                messages.push('Rate must be between 0% and 30%');
+            }
+            if (messages.length) {
+                msgEl.className = 'dynamic-item-validation error';
+                msgEl.textContent = messages.join('; ');
+            }
+        });
     },
 
     // ==================== Main Calculation ====================
 
     calculate() {
+        const hasErrors = this.validateInputs();
+        this.validateDynamicItems();
+        if (hasErrors) return;
+
         const el = this.elements;
         const principal = parseFloat(el.principal.value) || this.getConfig('principal');
         const annualRate = (parseFloat(el.rate.value) || this.getConfig('annualRate')) / 100;
