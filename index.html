@@ -148,6 +148,50 @@
 
                         <button class="btn-add" id="addRatePeriod">+ Add Rate Period</button>
                     </div>
+
+                    <div class="panel" style="margin-top: 20px;">
+                        <h2>Early Repayment Charges <span class="new-badge beta-badge">Beta</span></h2>
+                        <p style="font-size: 0.8rem; color: #7f8c8d; margin-bottom: 10px;">
+                            Calculate penalties for overpaying during a fixed-rate period using the interest rate differential method.
+                        </p>
+
+                        <div class="toggle-group">
+                            <input type="checkbox" id="enableERC">
+                            <label for="enableERC">Enable ERC calculation</label>
+                        </div>
+
+                        <div id="ercGroup" style="display: none;">
+                            <div class="form-group">
+                                <label>Fixed Rate End Year</label>
+                                <div class="input-with-suffix">
+                                    <input type="number" id="ercEndYear" value="2031" min="1990" max="2100" step="1"
+                                           aria-describedby="ercEndYear-validation">
+                                    <span>year</span>
+                                </div>
+                                <div class="validation-message" id="ercEndYear-validation" role="alert" aria-live="polite"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Comparator Rate (current bank rate)</label>
+                                <div class="input-with-suffix">
+                                    <input type="number" id="ercComparatorRate" value="2.0" min="0" max="30" step="0.05"
+                                           aria-describedby="ercComparatorRate-validation">
+                                    <span>%</span>
+                                </div>
+                                <div class="validation-message" id="ercComparatorRate-validation" role="alert" aria-live="polite"></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Annual Penalty-Free Allowance</label>
+                                <div class="input-with-suffix">
+                                    <input type="number" id="ercAllowance" value="10" min="0" max="100" step="1"
+                                           aria-describedby="ercAllowance-validation">
+                                    <span>% of balance</span>
+                                </div>
+                                <div class="validation-message" id="ercAllowance-validation" role="alert" aria-live="polite"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="panel" style="margin-top: 20px;">
@@ -169,6 +213,15 @@
                         <div class="summary-item highlight">
                             <label>Interest Saved</label>
                             <div class="value positive" id="interestSaved">-</div>
+                        </div>
+                        <div class="summary-item erc-summary" id="ercSummaryBlock" style="display: none;">
+                            <label>ERC Charges</label>
+                            <div class="value erc-charge" id="ercCharges">-</div>
+                        </div>
+                        <div class="summary-item highlight erc-summary" id="ercNetBlock" style="display: none;">
+                            <label>Net Savings</label>
+                            <div class="value" id="ercNetSavings">-</div>
+                            <div class="sub-value" id="ercNetDetail"></div>
                         </div>
                     </div>
                 </div>

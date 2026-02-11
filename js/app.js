@@ -74,7 +74,12 @@ const MortgageApp = {
             amortizationBody: document.getElementById('amortizationBody'),
             tableSummary: document.getElementById('tableSummary'),
             currencySelect: document.getElementById('currencySelect'),
-            currencySymbols: document.querySelectorAll('.currency-symbol')
+            currencySymbols: document.querySelectorAll('.currency-symbol'),
+            enableERC: document.getElementById('enableERC'),
+            ercGroup: document.getElementById('ercGroup'),
+            ercEndYear: document.getElementById('ercEndYear'),
+            ercComparatorRate: document.getElementById('ercComparatorRate'),
+            ercAllowance: document.getElementById('ercAllowance')
         };
     },
 
@@ -235,6 +240,15 @@ const MortgageApp = {
         if (el.currencySelect) {
             el.currencySelect.addEventListener('change', (e) => this.setCurrency(e.target.value));
         }
+
+        // ERC toggle and inputs
+        el.enableERC.addEventListener('change', () => {
+            el.ercGroup.style.display = el.enableERC.checked ? 'block' : 'none';
+            this.calculate();
+        });
+        [el.ercEndYear, el.ercComparatorRate, el.ercAllowance].forEach(input => {
+            input.addEventListener('input', debouncedCalc);
+        });
     },
 
     /**
@@ -459,6 +473,53 @@ const MortgageApp = {
             this.clearValidation(el.overpayment, overpaymentMsg);
         }
 
+        // --- ERC fields (only if enabled) ---
+        const ercEndYearMsg = document.getElementById('ercEndYear-validation');
+        const ercCompMsg = document.getElementById('ercComparatorRate-validation');
+        const ercAllowMsg = document.getElementById('ercAllowance-validation');
+        if (el.enableERC.checked) {
+            const ercEndVal = parseInt(el.ercEndYear.value);
+            const startVal = parseInt(el.startYear.value) || 2026;
+            const termVal = parseInt(el.term.value) || 30;
+            if (isNaN(ercEndVal)) {
+                this.setValidation(el.ercEndYear, ercEndYearMsg, 'error', 'End year is required');
+                hasErrors = true;
+            } else if (ercEndVal <= startVal) {
+                this.setValidation(el.ercEndYear, ercEndYearMsg, 'error', 'Must be after start year');
+                hasErrors = true;
+            } else if (ercEndVal > startVal + termVal) {
+                this.setValidation(el.ercEndYear, ercEndYearMsg, 'warning', 'Beyond loan term');
+            } else {
+                this.clearValidation(el.ercEndYear, ercEndYearMsg);
+            }
+
+            const compVal = parseFloat(el.ercComparatorRate.value);
+            const fixedRate = parseFloat(el.rate.value) || 0;
+            if (isNaN(compVal) || compVal < 0) {
+                this.setValidation(el.ercComparatorRate, ercCompMsg, 'error', 'Rate cannot be negative');
+                hasErrors = true;
+            } else if (compVal > 30) {
+                this.setValidation(el.ercComparatorRate, ercCompMsg, 'error', 'Maximum rate is 30%');
+                hasErrors = true;
+            } else if (compVal >= fixedRate) {
+                this.setValidation(el.ercComparatorRate, ercCompMsg, 'warning', 'No charge when comparator rate >= fixed rate');
+            } else {
+                this.clearValidation(el.ercComparatorRate, ercCompMsg);
+            }
+
+            const allowVal = parseFloat(el.ercAllowance.value);
+            if (isNaN(allowVal) || allowVal < 0 || allowVal > 100) {
+                this.setValidation(el.ercAllowance, ercAllowMsg, 'error', 'Must be between 0% and 100%');
+                hasErrors = true;
+            } else {
+                this.clearValidation(el.ercAllowance, ercAllowMsg);
+            }
+        } else {
+            this.clearValidation(el.ercEndYear, ercEndYearMsg);
+            this.clearValidation(el.ercComparatorRate, ercCompMsg);
+            this.clearValidation(el.ercAllowance, ercAllowMsg);
+        }
+
         return hasErrors;
     },
 
@@ -542,6 +603,12 @@ const MortgageApp = {
         const overpaymentEnabled = el.enableOverpayment.checked;
         const monthlyOverpayment = overpaymentEnabled ? (parseFloat(el.overpayment.value) || 0) : 0;
 
+        // ERC parameters
+        const ercEnabled = el.enableERC.checked;
+        const ercEndYear = parseInt(el.ercEndYear.value) || startYear + 5;
+        const ercComparatorRate = (parseFloat(el.ercComparatorRate.value) || 0) / 100;
+        const ercAllowancePct = parseFloat(el.ercAllowance.value) || 10;
+
         // Calculate standard amortization
         const standard = MortgageCalculations.calculateAmortization({
             principal,
@@ -553,7 +620,7 @@ const MortgageApp = {
             ratePeriods: this.state.ratePeriods
         });
 
-        // Calculate with overpayments and lump sums
+        // Calculate with overpayments and lump sums (+ ERC if enabled)
         const withOverpayments = MortgageCalculations.calculateAmortization({
             principal,
             defaultMonthlyRate: monthlyRate,
@@ -561,7 +628,11 @@ const MortgageApp = {
             startYear,
             monthlyOverpayment,
             lumpSumPayments: this.state.lumpSums,
-            ratePeriods: this.state.ratePeriods
+            ratePeriods: this.state.ratePeriods,
+            ercEnabled,
+            ercEndYear,
+            ercComparatorRate,
+            ercAllowancePct
         });
 
         // Store schedules for table
@@ -621,11 +692,31 @@ const MortgageApp = {
             document.getElementById('timeSaved').textContent = yearsSaved > 0 ? `${yearsSaved.toFixed(1)} years saved` : '';
             document.getElementById('interestSaved').textContent = this.formatCurrency(interestSaved);
             document.getElementById('completionDetail').textContent = `${(termYears - newTermYears).toFixed(1)} years early`;
+
+            // ERC summary
+            const ercEnabled = this.elements.enableERC.checked;
+            const totalErc = withOverpayments.totalErcCharges || 0;
+            const ercSummaryBlock = document.getElementById('ercSummaryBlock');
+            const ercNetBlock = document.getElementById('ercNetBlock');
+
+            if (ercEnabled && totalErc > 0) {
+                const netSavings = interestSaved - totalErc;
+                ercSummaryBlock.style.display = '';
+                ercNetBlock.style.display = '';
+                document.getElementById('ercCharges').textContent = this.formatCurrency(totalErc);
+                document.getElementById('ercNetSavings').textContent = this.formatCurrency(netSavings);
+                document.getElementById('ercNetDetail').textContent = netSavings > 0 ? 'Still saves money' : 'Charges exceed savings';
+            } else {
+                ercSummaryBlock.style.display = 'none';
+                ercNetBlock.style.display = 'none';
+            }
         } else {
             document.getElementById('newTerm').textContent = '-';
             document.getElementById('timeSaved').textContent = '';
             document.getElementById('interestSaved').textContent = '-';
             document.getElementById('completionDetail').textContent = 'Mortgage paid off';
+            document.getElementById('ercSummaryBlock').style.display = 'none';
+            document.getElementById('ercNetBlock').style.display = 'none';
         }
     },
 
