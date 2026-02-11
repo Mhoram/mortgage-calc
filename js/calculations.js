@@ -27,6 +27,10 @@ const MortgageCalculations = {
      * @param {number} params.monthlyOverpayment - Extra monthly payment (default 0)
      * @param {Array} params.lumpSumPayments - Array of {year, amount} objects
      * @param {Array} params.ratePeriods - Array of {startYear, endYear, rate} objects
+     * @param {boolean} params.ercEnabled - Whether ERC calculation is active
+     * @param {number} params.ercEndYear - Year the fixed rate period ends
+     * @param {number} params.ercComparatorRate - Current bank comparator rate (annual, as decimal e.g. 0.02)
+     * @param {number} params.ercAllowancePct - Penalty-free overpayment allowance (% of balance per year)
      * @returns {Object} Amortization results
      */
     calculateAmortization({
@@ -36,7 +40,11 @@ const MortgageCalculations = {
         startYear,
         monthlyOverpayment = 0,
         lumpSumPayments = [],
-        ratePeriods = []
+        ratePeriods = [],
+        ercEnabled = false,
+        ercEndYear = 0,
+        ercComparatorRate = 0,
+        ercAllowancePct = 10
     }) {
         // Calculate initial monthly payment using default rate
         let currentMonthlyPayment = this.calcMonthlyPayment(principal, defaultMonthlyRate, totalPayments);
@@ -52,6 +60,13 @@ const MortgageCalculations = {
         const rateChanges = [];
 
         let month = 0;
+        let totalErcCharges = 0;
+
+        // ERC tracking: yearly overpayment totals and allowance
+        let ercYearlyOverpayment = 0;
+        let ercCurrentTrackingYear = startYear;
+        let ercYearStartBalance = principal;
+        const fixedAnnualRate = defaultMonthlyRate * 12;
 
         // Sort lump sums and rate periods by year
         const sortedLumpSums = [...lumpSumPayments].sort((a, b) => a.year - b.year);
@@ -118,6 +133,39 @@ const MortgageCalculations = {
             balance -= totalPrincipalPaid;
             if (balance < 0) balance = 0;
 
+            // ERC calculation
+            let ercCharge = 0;
+            if (ercEnabled && currentYear < ercEndYear) {
+                const extraThisMonth = monthlyOverpayment + lumpSumThisMonth;
+
+                // Reset yearly tracking on year change
+                if (currentYear !== ercCurrentTrackingYear) {
+                    ercYearlyOverpayment = 0;
+                    ercCurrentTrackingYear = currentYear;
+                    ercYearStartBalance = balance + totalPrincipalPaid;
+                }
+
+                if (extraThisMonth > 0) {
+                    ercYearlyOverpayment += extraThisMonth;
+                    const yearlyAllowance = ercYearStartBalance * (ercAllowancePct / 100);
+                    const excessAmount = ercYearlyOverpayment - yearlyAllowance;
+
+                    if (excessAmount > 0) {
+                        // Only charge on the portion of this month's extra that exceeds allowance
+                        const chargeableThisMonth = Math.min(extraThisMonth, excessAmount);
+                        const rateDiff = fixedAnnualRate - ercComparatorRate;
+
+                        if (rateDiff > 0) {
+                            // Remaining days: months left in fixed period × 30.44 (avg days/month)
+                            const monthsLeft = (ercEndYear - currentYear) * 12 - (currentMonth - 1);
+                            const daysLeft = Math.max(0, monthsLeft * 30.44);
+                            ercCharge = chargeableThisMonth * rateDiff * daysLeft / 365;
+                        }
+                    }
+                }
+                totalErcCharges += ercCharge;
+            }
+
             // Store schedule entry
             schedule.push({
                 month,
@@ -129,6 +177,7 @@ const MortgageCalculations = {
                 interest,
                 extra: monthlyOverpayment,
                 lumpSum: lumpSumThisMonth,
+                ercCharge,
                 totalPayment: totalPaymentThisMonth,
                 balance
             });
@@ -152,7 +201,8 @@ const MortgageCalculations = {
             totalInterest: cumulativeInterest[cumulativeInterest.length - 1],
             totalMonths: month,
             schedule,
-            rateChanges
+            rateChanges,
+            totalErcCharges
         };
     }
 };

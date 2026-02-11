@@ -163,6 +163,39 @@
         </header>
 
         <div class="changelog-list">
+            <!-- v1.9.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">🔒 Early Repayment Charge Calculator</span>
+                    <span class="changelog-date">10 February 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <ul>
+                        <li>Calculate ERC penalties using the Bank of Ireland interest rate differential method</li>
+                        <li>Configurable fixed rate end year, comparator rate, and penalty-free allowance</li>
+                        <li>Tracks yearly overpayment allowance (default 10% of balance)</li>
+                        <li>Shows ERC charges and net savings in the summary comparison panel</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- v1.8.0 -->
+            <div class="changelog-entry">
+                <div class="changelog-header">
+                    <span class="changelog-title">✨ Input Validation</span>
+                    <span class="changelog-date">10 February 2026</span>
+                </div>
+                <div class="changelog-description">
+                    <ul>
+                        <li>Real-time validation for all form inputs with error and warning states</li>
+                        <li>Errors (red) block calculation; warnings (amber) allow it with a note</li>
+                        <li>Validation for dynamic items (lump sums and rate periods)</li>
+                        <li>Accessible via <code>aria-live</code> regions for screen readers</li>
+                        <li>Lowered minimum start year to 1990</li>
+                    </ul>
+                </div>
+            </div>
+
             <!-- v1.7.0 -->
             <div class="changelog-entry">
                 <div class="changelog-header">

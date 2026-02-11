@@ -326,6 +326,10 @@ header p {
     text-transform: uppercase;
 }
 
+.new-badge.beta-badge {
+    background: #8e44ad;
+}
+
 /* Export Buttons */
 .btn-export {
     background: #3498db;
@@ -692,4 +696,19 @@ header p {
 
 .dynamic-item-validation.warning {
     color: #f39c12;
+}
+
+/* ==================== ERC Summary Styles ==================== */
+
+.summary-item .erc-charge {
+    color: #e74c3c;
+}
+
+.summary-item #ercNetSavings {
+    font-weight: 700;
+}
+
+.summary-item #ercNetDetail {
+    font-size: 0.8rem;
+    color: #7f8c8d;
 }
