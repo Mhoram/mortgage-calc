@@ -712,3 +712,46 @@ header p {
     font-size: 0.8rem;
     color: #7f8c8d;
 }
+
+/* ==================== Tab Navigation ==================== */
+
+.tab-nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 0;
+}
+
+.tab-btn {
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #7f8c8d;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: -2px;
+    border-radius: 4px 4px 0 0;
+}
+
+.tab-btn:hover {
+    color: #3498db;
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.tab-btn.active {
+    color: #3498db;
+    border-bottom-color: #3498db;
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
