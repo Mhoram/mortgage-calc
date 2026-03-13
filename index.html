@@ -50,6 +50,12 @@
             </p>
         </header>
 
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('mortgage')" id="mortgageTabBtn">&#127968; Mortgage</button>
+            <button class="tab-btn" onclick="switchTab('loan')" id="loanTabBtn">&#128179; Loan</button>
+        </div>
+
+        <div id="mortgageTab" class="tab-content active">
         <div class="main-layout">
             <!-- Input Panel -->
             <div class="inputs-column">
@@ -340,6 +346,209 @@
                 </div>
             </div>
         </div>
+        </div><!-- end #mortgageTab -->
+
+        <!-- Loan Calculator Tab -->
+        <div id="loanTab" class="tab-content">
+            <div class="main-layout">
+                <!-- Loan Input Panel -->
+                <div class="inputs-column">
+                    <div class="panel">
+                        <h2>Loan Details</h2>
+
+                        <div class="form-group">
+                            <label>Loan Amount</label>
+                            <div class="input-with-prefix">
+                                <span class="currency-symbol">&euro;</span>
+                                <input type="number" id="loanAmount" value="20000" min="100" max="50000000" step="100"
+                                       aria-describedby="loanAmount-validation">
+                            </div>
+                            <div class="validation-message" id="loanAmount-validation" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Annual Interest Rate</label>
+                            <div class="input-with-suffix">
+                                <input type="number" id="loanRate" value="6.5" min="0" max="30" step="0.05"
+                                       aria-describedby="loanRate-validation">
+                                <span>%</span>
+                            </div>
+                            <div class="validation-message" id="loanRate-validation" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Loan Term</label>
+                            <div class="input-with-suffix">
+                                <input type="number" id="loanTerm" value="5" min="1" max="30" step="1"
+                                       aria-describedby="loanTerm-validation">
+                                <span>years</span>
+                            </div>
+                            <div class="validation-message" id="loanTerm-validation" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Start Year</label>
+                            <input type="number" id="loanStartYear" value="2026" min="1990" max="2100" step="1"
+                                   aria-describedby="loanStartYear-validation">
+                            <div class="validation-message" id="loanStartYear-validation" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        <!-- Advanced Options Toggle -->
+                        <button class="advanced-toggle" id="loanAdvancedToggle" onclick="LoanApp.toggleAdvancedOptions()">
+                            <span class="icon">&#9660;</span>
+                            <span class="text">Show advanced options</span>
+                        </button>
+                    </div>
+
+                    <!-- Advanced Section -->
+                    <div class="advanced-section" id="loanAdvancedSection">
+                        <div class="panel" style="margin-top: 20px;">
+                            <h2>Overpayments</h2>
+
+                            <div class="toggle-group">
+                                <input type="checkbox" id="loanEnableOverpayment">
+                                <label for="loanEnableOverpayment">Enable monthly overpayment</label>
+                            </div>
+
+                            <div class="form-group" id="loanOverpaymentGroup" style="display: none;">
+                                <label>Extra Monthly Payment</label>
+                                <div class="input-with-prefix">
+                                    <span class="currency-symbol">&euro;</span>
+                                    <input type="number" id="loanOverpayment" value="50" min="0" step="10"
+                                           aria-describedby="loanOverpayment-validation">
+                                </div>
+                                <div class="validation-message" id="loanOverpayment-validation" role="alert" aria-live="polite"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Comparison -->
+                    <div class="panel" style="margin-top: 20px;">
+                        <h2>Summary Comparison</h2>
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <label>Standard Term</label>
+                                <div class="value" id="loanStandardTerm">-</div>
+                            </div>
+                            <div class="summary-item highlight">
+                                <label>With Overpayments</label>
+                                <div class="value" id="loanNewTerm">-</div>
+                                <div class="sub-value" id="loanTimeSaved"></div>
+                            </div>
+                            <div class="summary-item">
+                                <label>Standard Interest</label>
+                                <div class="value" id="loanStandardInterest">-</div>
+                            </div>
+                            <div class="summary-item highlight">
+                                <label>Interest Saved</label>
+                                <div class="value positive" id="loanInterestSaved">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Loan Charts Column -->
+                <div class="charts-container">
+                    <!-- Summary Cards -->
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <label>Monthly Payment</label>
+                            <div class="value" id="loanMonthlyPayment">&euro;0</div>
+                            <div class="detail" id="loanMonthlyDetail">Standard payment</div>
+                        </div>
+                        <div class="summary-card">
+                            <label>Total Interest</label>
+                            <div class="value" id="loanTotalInterest">&euro;0</div>
+                            <div class="detail">Over full term</div>
+                        </div>
+                        <div class="summary-card">
+                            <label>Total Cost</label>
+                            <div class="value" id="loanTotalCost">&euro;0</div>
+                            <div class="detail">Principal + Interest</div>
+                        </div>
+                        <div class="summary-card">
+                            <label>Completion Year</label>
+                            <div class="value" id="loanCompletionYear">-</div>
+                            <div class="detail" id="loanCompletionDetail">Loan paid off</div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="chart-panel">
+                            <div class="chart-header">
+                                <h3>Remaining Balance Over Time</h3>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="loanBalanceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-panel">
+                            <div class="chart-header">
+                                <h3>Monthly Payment Breakdown</h3>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="loanPaymentChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-panel">
+                            <div class="chart-header">
+                                <h3>Cumulative Payments Over Time</h3>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="loanCumulativeChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-panel">
+                            <div class="chart-header">
+                                <h3>Total Cost Breakdown</h3>
+                            </div>
+                            <div class="chart-wrapper">
+                                <canvas id="loanPieChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amortization Table -->
+                    <div class="table-panel">
+                        <h3>Monthly Amortization Schedule</h3>
+                        <div class="table-controls">
+                            <label>View:</label>
+                            <select id="loanTableView">
+                                <option value="with-overpayments">With Overpayments</option>
+                                <option value="standard">Standard Schedule</option>
+                            </select>
+                            <label>Show:</label>
+                            <select id="loanTableFilter">
+                                <option value="all">All Months</option>
+                                <option value="yearly">Yearly Summary</option>
+                            </select>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="amortization-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Date</th>
+                                        <th>Payment</th>
+                                        <th>Principal</th>
+                                        <th>Interest</th>
+                                        <th>Extra</th>
+                                        <th>Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loanAmortizationBody">
+                                    <!-- Table rows will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-summary" id="loanTableSummary">
+                            <!-- Summary will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- end #loanTab -->
     </div>
 
     <!-- Application Scripts -->
@@ -347,5 +556,16 @@
     <script src="js/charts.js"></script>
     <script src="js/exports.js"></script>
     <script src="js/app.js"></script>
+    <script src="js/loan-charts.js"></script>
+    <script src="js/loan-app.js"></script>
+    <script>
+        function switchTab(name) {
+            document.getElementById('mortgageTab').classList.toggle('active', name === 'mortgage');
+            document.getElementById('loanTab').classList.toggle('active', name === 'loan');
+            document.getElementById('mortgageTabBtn').classList.toggle('active', name === 'mortgage');
+            document.getElementById('loanTabBtn').classList.toggle('active', name === 'loan');
+            if (name === 'loan' && !LoanApp.initialized) LoanApp.init();
+        }
+    </script>
 </body>
 </html>
